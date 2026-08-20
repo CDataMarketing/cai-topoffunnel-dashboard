@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Connect AI CTR Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --border: #d9dde3;
+    --border-strong: #aab2bd;
+    --head-bg: #f4f6f8;
+    --week-bg: #e9edf2;
+    --label-bg: #fbfcfd;
+    --sess-bg: #ffffff;
+    --evt-bg: #fbfaf4;
+    --extra-bg: #f6f2fa;
+    --ctr-bg: #f3f7ef;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --accent: #0b5fff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 12.5px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: #eef1f5; }
+  .page { max-width: 1500px; margin: 0 auto; background: #fff; min-height: 100vh; box-shadow: 0 0 24px rgba(30, 41, 59, .08); }
+  header { padding: 14px 20px 10px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
+           position: sticky; top: 0; z-index: 60; background: #fff; }
+  #patternBar { position: sticky; top: var(--headerH, 48px); z-index: 55; padding: 7px 20px; border-bottom: 1px solid var(--border); background: var(--label-bg); }
+  #patternBar select { font: inherit; padding: 4px 8px; border: 1px solid var(--border-strong); border-radius: 6px; background: #fff; min-width: 320px; }
+  h1 { font-size: 15px; margin: 0; font-weight: 650; }
+  h2 { font-size: 13.5px; margin: 22px 20px 8px; font-weight: 650; }
+  #topTabs { display: flex; gap: 2px; }
+  #topTabs button { border: 1px solid var(--border-strong); border-radius: 7px 7px 0 0; border-bottom: none; background: var(--head-bg); padding: 6px 16px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  #topTabs button.active { background: #fff; color: var(--text); font-weight: 650; border-bottom: 2px solid #fff; margin-bottom: -2px; }
+  #expWrap.tableWrap { overflow: visible; } /* page scrolls; column headers stick below the app header */
+  #expWrap table { width: 100%; table-layout: fixed; }
+  #expWrap th, #expWrap td { text-align: left; white-space: pre-line; vertical-align: top; overflow-wrap: break-word; }
+  #expWrap thead th { position: sticky; top: var(--headerH, 48px); z-index: 2; }
+  .infoI { display: inline-block; width: 13px; height: 13px; border-radius: 50%; background: var(--muted); color: #fff;
+           font: italic 600 9.5px/13px Georgia, serif; text-align: center; cursor: help; vertical-align: 1px; }
+  .infoI:hover { background: var(--accent); }
+  #expWrap .titleCell, #expWrap .dateCell { cursor: text; }
+  #expWrap .titleCell:hover, #expWrap .dateCell:hover { outline: 1px dashed var(--border-strong); outline-offset: 2px; }
+  .imgWrap { position: relative; margin-bottom: 5px; }
+  .cellImg { display: block; max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+  .imgDel { position: absolute; top: 3px; right: 3px; border: none; border-radius: 3px; background: rgba(255,255,255,.85); font-size: 10px; padding: 1px 5px; cursor: pointer; color: var(--muted); }
+  .imgDel:hover { color: #c0392b; }
+  .imgAdd { display: block; margin-top: 4px; border: 1px dashed var(--border-strong); border-radius: 5px; background: none; font-size: 10px; padding: 1px 7px; color: var(--muted); cursor: pointer; }
+  .imgAdd:hover { color: var(--accent); border-color: var(--accent); }
+  .updBtn { display: block; margin-top: 4px; border: 1px solid var(--border-strong); border-radius: 5px; background: #fff; font-size: 10px; padding: 1px 7px; color: var(--muted); cursor: pointer; }
+  .updBtn:hover { color: var(--accent); border-color: var(--accent); }
+  .updPending { font-size: 10px; font-style: italic; color: #a05a00; background: #fdf3e3; border-radius: 4px; padding: 2px 6px; margin-bottom: 4px; }
+  #expWrap .titleCell:hover { outline: 1px dashed var(--border-strong); outline-offset: 2px; }
+  #expWrap tbody tr:nth-child(even) td { background: var(--label-bg); }
+  #expWrap .cellText { display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+  #expWrap tr.expanded .cellText { -webkit-line-clamp: unset; }
+  #expWrap tr.newRow td { cursor: pointer; height: 26px; color: var(--muted); font-style: italic; }
+  #expWrap tr.newRow:hover td { background: var(--head-bg); }
+  #expWrap input, #expWrap select, #expWrap textarea { font: inherit; font-size: 11px; padding: 3px 5px; border: 1px solid var(--border-strong); border-radius: 5px; width: 100%; box-sizing: border-box; }
+  #expWrap textarea { min-height: 80px; resize: vertical; }
+  #expWrap thead th { background: var(--head-bg); font-weight: 650; }
+  #expWrap .delX { border: none; background: none; color: var(--muted); cursor: pointer; }
+  #expWrap .delX:hover { color: #c0392b; }
+  .meta { color: var(--muted); font-size: 12.5px; }
+  .meta code, #eventsLine code { background: var(--head-bg); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+  button { font: inherit; padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: #fff; cursor: pointer; }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: .55; cursor: default; }
+  #eventsLine { padding: 8px 20px; color: var(--muted); font-size: 12.5px; border-bottom: 1px solid var(--border); }
+  .tableWrap { overflow: auto; max-height: 72vh; margin: 0 0 8px; }
+  table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+  th, td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 2px 5px; text-align: right; white-space: nowrap; font-size: 11px; }
+  thead th { position: sticky; background: var(--head-bg); z-index: 3; }
+  thead tr.weeks th { top: 0; text-align: center; background: var(--week-bg); font-weight: 650; border-bottom: 1px solid var(--border-strong); }
+  thead tr.days th { top: 20px; font-weight: 550; color: var(--muted); }
+  thead tr.days:first-child th { top: 0; }
+  tbody th { position: sticky; left: 0; background: var(--label-bg); text-align: left; font-weight: 550; z-index: 2; border-right: 1px solid var(--border-strong); min-width: 210px; }
+  tbody th small { color: var(--muted); font-weight: 450; }
+  thead th.corner { left: 0; z-index: 4; background: var(--head-bg); }
+  /* box-shadow instead of border: takes no layout space, so fixed-grid tables stay pixel-aligned */
+  td.weekstart, th.weekstart { box-shadow: inset 2px 0 0 var(--border-strong); }
+  /* weekend + running-experiment tints as overlays, so row backgrounds shine through */
+  td.wknd, th.wknd { box-shadow: inset 0 0 0 999px rgba(30, 41, 59, .045); }
+  td.live, th.live { box-shadow: inset 0 0 0 999px rgba(11, 95, 255, .07); }
+  td.wknd.live, th.wknd.live { box-shadow: inset 0 0 0 999px rgba(11, 95, 255, .07), inset 0 0 0 999px rgba(30, 41, 59, .045); }
+  td.weekstart.live, th.weekstart.live { box-shadow: inset 2px 0 0 var(--border-strong), inset 0 0 0 999px rgba(11, 95, 255, .07); }
+  .liveHint { background: rgba(11, 95, 255, .07); padding: 1px 6px; border-radius: 4px; }
+  .grpToggle { border: none; background: none; cursor: pointer; font-size: 9px; padding: 0 4px 0 0; color: var(--muted); }
+  .grpToggle:hover { color: var(--accent); }
+  .agentToggle { border: 1px solid var(--border-strong); border-radius: 4px; background: #fff; cursor: pointer; font-size: 9px; padding: 0 5px; margin-left: 6px; color: var(--muted); }
+  .agentToggle:hover { color: var(--accent); border-color: var(--accent); }
+  tr.subEvt th { padding-left: 26px; }
+  tr.sess td { background: var(--sess-bg); }
+  tr.evt td { background: var(--evt-bg); }
+  tr.extra td { background: var(--extra-bg); }
+  tr.ctr td { background: var(--ctr-bg); font-weight: 600; }
+  tr.evctr td, tr.evctr th { font-size: 10px; font-style: italic; color: var(--muted); padding-top: 0; padding-bottom: 2px; }
+  tr.evctr td { background: var(--evt-bg); }
+  tr.evctr.extra td { background: var(--extra-bg); }
+  td.out { background: #f6f7f9; }
+  th.out { color: #c2c8d0; }
+  td.span { text-align: center; font-weight: 650; }
+  tr.blockend td, tr.blockend th { border-bottom: 2px solid var(--border-strong); }
+  td.zero { color: #c2c8d0; }
+  #empty { padding: 40px; color: var(--muted); }
+  /* experiment timeline tab */
+  #tlCharts { padding: 10px 20px 50px; }
+  .tlIntro { color: var(--muted); font-size: 12.5px; max-width: 860px; }
+  .tlChart { margin: 26px 0 6px; }
+  .tlChart h3 { font-size: 15px; margin: 0 0 2px; }
+  .tlChart .meta { display: block; margin-bottom: 8px; }
+  .tlChart svg { width: 100%; height: auto; display: block; }
+  .tlEvalLane { position: relative; margin-top: 6px; }
+  .tlEvalBlock { position: absolute; top: 0; box-sizing: border-box; font-size: 11px; line-height: 1.35; padding: 5px 8px;
+                 background: var(--label-bg); border: 1px solid var(--border); border-left: 3px solid rgba(11, 95, 255, .45);
+                 border-radius: 0 6px 6px 0; cursor: help; overflow-wrap: break-word;
+                 min-width: min(230px, 100%); max-width: 100%; }
+  .tlEvalBlock .evalTxt { color: var(--muted); }
+  details > summary { font-size: 15px; font-weight: 650; margin: 18px 20px 8px; cursor: pointer; list-style-position: inside; user-select: none; }
+  /* full-width, no side border/margin — keeps its columns pixel-aligned with the daily table */
+  .rangeCard { margin: 14px 0; border-top: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong); overflow: hidden; }
+  .rangeCard .rangeHead { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; background: var(--head-bg); border-bottom: 1px solid var(--border); }
+  .rangeCard .rangeHead strong { font-size: 14px; }
+  .rangeCard .closeX { border: none; background: none; font-size: 17px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 6px; }
+  .rangeCard .closeX:hover { color: #c0392b; }
+  .rangeCard .tableWrap { max-height: 60vh; margin: 0; }
+  #rangeControls { padding: 12px 20px 36px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #rangeControls input[type="date"] { font: inherit; padding: 4px 7px; border: 1px solid var(--border-strong); border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>Marketing Cockpit</h1>
+  <nav id="topTabs">
+    <button data-view="tl" class="active">Experiment timeline</button>
+    <button data-view="exp">Web experiments</button>
+    <button data-view="ctr">CAI Traffic &amp; CTR</button>
+  </nav>
+  <span class="meta" id="rangeMeta"></span>
+  <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
+</header>
+
+<div id="ctrView" hidden>
+<div id="patternBar">
+  <label>URL pattern:
+    <select id="patternSelect"></select>
+  </label>
+</div>
+<div id="eventsLine"></div>
+<details open>
+  <summary>Daily</summary>
+  <div class="tableWrap" id="dailyWrap"></div>
+</details>
+<details>
+  <summary>Weekly summary</summary>
+  <div class="tableWrap" id="weeklyWrap"></div>
+</details>
+<div id="rangeTables"></div>
+<div id="rangeControls">
+  <button id="addRangeBtn">Set date range</button>
+  <span id="rangeForm" hidden>
+    <input type="date" id="rangeStart"> → <input type="date" id="rangeEnd">
+    <button id="rangeApply">Show</button>
+    <button id="rangeCancel">Cancel</button>
+  </span>
+</div>
+<div id="empty" hidden>No data snapshot yet — run <code>node fetch-data.js</code> first.</div>
+</div>
+
+<div id="expView" hidden>
+  <div class="tableWrap" id="expWrap" style="max-height:none"></div>
+</div>
+
+<div id="tlView">
+  <div id="tlCharts"></div>
+</div>
+</div>
+
+<!-- EMBED_DATA -->
+<script>
+'use strict';
+let PAYLOAD = null;
+
+const $ = (id) => document.getElementById(id);
+const fmtInt = (n) => n.toLocaleString('en-US');
+const BUCKETS = ['all', 'paid', 'organic', 'direct'];
+const BUCKET_LABEL = { all: 'All', paid: 'Paid', organic: 'Organic', direct: 'Direct' };
+
+function parseDate(s) { return new Date(s + 'T00:00:00Z'); }
+function iso(d) { return d.toISOString().slice(0, 10); }
+function addDays(d, n) { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x; }
+
+function isoWeek(d) {
+  const t = new Date(d);
+  t.setUTCDate(t.getUTCDate() + 3 - ((t.getUTCDay() + 6) % 7)); // ISO week's Thursday
+  const week1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  const wk = 1 + Math.round(((t - week1) / 86400000 - 3 + ((week1.getUTCDay() + 6) % 7)) / 7);
+  return { week: wk, year: t.getUTCFullYear() };
+}
+
+function dateList(start, end) {
+  const out = [];
+  for (let d = parseDate(start); d <= parseDate(end); d = addDays(d, 1)) out.push(iso(d));
+  return out;
+}
+
+const fmtShort = (s) => `${s.slice(8, 10)}.${s.slice(5, 7)}.`;
+const fmtDay = fmtShort; // day columns: date only, keeps columns narrow
+const isWeekend = (s) => { const wd = parseDate(s).getUTCDay(); return wd === 0 || wd === 6; };
+const weekLabel = (w) => {
+  const { week, year } = isoWeek(parseDate(w.dates[0]));
+  return `CW ${String(week).padStart(2, '0')}/${year} · ${fmtShort(w.dates[0])}–${fmtShort(w.dates[w.dates.length - 1])}${w.dates[0].slice(0, 4)}`;
+};
+
+// ---- per-column metric accessors -----------------------------------------
+// A "column" is a list of dates (one for daily, a whole week for the summary).
+function sessSum(days, dates, bucket) {
+  return dates.reduce((a, d) => a + (days[d]?.s[bucket] ?? 0), 0);
+}
+function eventSum(days, dates, eventNames, bucket) {
+  let total = 0;
+  for (const d of dates) {
+    const e = days[d]?.e;
+    if (!e) continue;
+    for (const name of eventNames) total += e[name]?.[bucket] ?? 0;
+  }
+  return total;
+}
+
+// ---- metric row definitions (shared by daily / weekly / range tables) ------
+// Events are auto-discovered from the snapshot (cc_ai_* + all_button_clicks):
+// whatever GA4 recorded on pages matching the pattern shows up automatically.
+function discoveredEvents(days) {
+  const totals = {};
+  for (const day of Object.values(days)) {
+    for (const [name, v] of Object.entries(day.e)) totals[name] = (totals[name] || 0) + v.all;
+  }
+  return totals;
+}
+// CTR / Events Total cover all discovered cc_ai_* events; all_button_clicks stays outside
+const ctrEventsOf = (days) => Object.keys(discoveredEvents(days)).filter((n) => n.startsWith('cc_ai_'));
+
+// events named after an AI agent (basis of the all_ai_agent_clicks aggregate)
+const AGENT_TOKENS = ['claude', 'chatgpt', 'gemini', 'copilot', 'agentforce', 'langchain',
+  'openai', 'servicenow', 'crewai', 'gumloop', 'n8n', 'claude code'];
+const agentEventsOf = (days) =>
+  Object.keys(discoveredEvents(days)).filter((n) => AGENT_TOKENS.some((t) => n.includes(t)));
+
+const TRAFFIC_TIP = { all: 'All traffic', paid: 'Paid traffic', organic: 'Organic traffic', direct: 'Direct traffic' };
+
+// keep sticky offsets in sync with the (possibly wrapping) header's height
+const setHeaderH = () =>
+  document.documentElement.style.setProperty('--headerH', document.querySelector('header').offsetHeight + 'px');
+window.addEventListener('resize', setHeaderH);
+setHeaderH();
+const expandedGroups = new Set(); // event blocks whose channel breakdown is open
+const expandedAgentGroups = new Set(); // patterns whose AI-agent breakdown is open
+
+// one delegated listener survives every re-render
+document.getElementById('ctrView').addEventListener('click', (e) => {
+  const ag = e.target.closest('.agentToggle');
+  if (ag) {
+    const k = ag.dataset.key;
+    expandedAgentGroups.has(k) ? expandedAgentGroups.delete(k) : expandedAgentGroups.add(k);
+    render();
+    return;
+  }
+  const btn = e.target.closest('.grpToggle');
+  if (!btn) return;
+  const g = btn.dataset.group;
+  expandedGroups.has(g) ? expandedGroups.delete(g) : expandedGroups.add(g);
+  render();
+});
+
+function metricRows(pattern, days) {
+  const rows = [];
+  let curTip = '';
+  const push = (label, cls, fn, blockend) => rows.push({ label, cls, fn, blockend, tip: curTip });
+  const ctrStr = (dates, evNames, b) => {
+    const s = sessSum(days, dates, b);
+    if (!s) return '-';
+    return ((eventSum(days, dates, evNames, b) / s) * 100).toFixed(1) + '%';
+  };
+
+  // 1) engaged sessions
+  BUCKETS.forEach((b, i) => {
+    curTip = TRAFFIC_TIP[b];
+    push(`Engaged Sessions — ${BUCKET_LABEL[b]}`, 'sess', (dates) => fmtInt(sessSum(days, dates, b)), i === 3);
+  });
+
+  // 2) each event separately: amount row + small italic CTR sub-row per bucket.
+  // Compact by default: only the "All" rows show; the per-channel breakdown
+  // expands via the ▸ toggle on the event's first row.
+  const eventBlock = (label, evNames, cls, extraToggle = '') => {
+    const expanded = expandedGroups.has(label);
+    const buckets = expanded ? BUCKETS : ['all'];
+    const toggle = `<button class="grpToggle" data-group="${label}" title="${expanded ? 'Hide' : 'Show'} paid/organic/direct breakdown">${expanded ? '▾' : '▸'}</button>`;
+    buckets.forEach((b, i) => {
+      curTip = TRAFFIC_TIP[b];
+      push(`${b === 'all' ? toggle : ''}<small>${label}</small> — ${BUCKET_LABEL[b]}${b === 'all' ? extraToggle : ''}`, cls, (dates) => fmtInt(eventSum(days, dates, evNames, b)), false);
+      push(`<small><em>↳ CTR — ${BUCKET_LABEL[b]}</em></small>`, `evctr ${cls.split(' ')[0]}`, (dates) => ctrStr(dates, evNames, b), i === buckets.length - 1);
+    });
+  };
+  const totals = discoveredEvents(days);
+  const names = Object.keys(totals);
+  const agentEvents = names.filter((n) => AGENT_TOKENS.some((t) => n.includes(t)))
+    .sort((a, b) => totals[b] - totals[a] || a.localeCompare(b));
+  const hasFT = names.includes('cc_ai_free_trial');
+  const trialSet = [...(hasFT ? ['cc_ai_free_trial'] : []), ...agentEvents];
+  const rest = names.filter((n) => n !== 'all_button_clicks' && n !== 'cc_ai_free_trial' && !agentEvents.includes(n))
+    .sort((a, b) => totals[b] - totals[a] || a.localeCompare(b));
+
+  // 2a) all_button_clicks leads ('extra' = outside CTR semantics)
+  if (names.includes('all_button_clicks')) eventBlock('all_button_clicks', ['all_button_clicks'], 'extra');
+
+  // 2b) trial-intent block: cc_ai_free_trial + all AI-agent clicks combined
+  // (same metric as the CTR trend). The agent breakdown is collapsed beneath
+  // it and expands via the ⊞ agents toggle.
+  if (trialSet.length) {
+    const combined = agentEvents.length > 0;
+    const label = combined ? 'cc_ai_free_trial + ai_agent_clicks' : 'cc_ai_free_trial';
+    const agKey = 'agents:' + pattern.id;
+    const agOpen = expandedAgentGroups.has(agKey);
+    const agToggle = combined
+      ? ` <button class="agentToggle" data-key="${agKey}" title="${agOpen ? 'Hide' : 'Show'} the AI-agent click breakdown">${agOpen ? '⊟ agents' : '⊞ agents'}</button>`
+      : '';
+    eventBlock(label, trialSet, 'evt', agToggle);
+    if (combined && agOpen) {
+      if (hasFT) eventBlock('↳ cc_ai_free_trial (alone)', ['cc_ai_free_trial'], 'extra subEvt');
+      eventBlock('↳ all_ai_agent_clicks', agentEvents, 'extra subEvt');
+      for (const ev of agentEvents) eventBlock('↳ ' + ev, [ev], 'extra subEvt');
+    }
+  }
+
+  // 2c) remaining events (product tour, main page, …) by volume
+  for (const ev of rest) eventBlock(ev, [ev], 'evt');
+
+  // (no pattern-level totals/CTR block — per-event CTR sub-rows cover it)
+  return rows;
+}
+
+// ---- table builders ---------------------------------------------------------
+const LABEL_COL_PX = 210, DAY_COL_PX = 46;
+// identical fixed grids let the daily table and the range cards align pixel-perfect;
+// fixed layout only honors col widths exactly when the table width is explicit
+const gridStyle = (n) => `table-layout:fixed;width:${LABEL_COL_PX + n * DAY_COL_PX}px`;
+const colgroup = (n) =>
+  `<colgroup><col style="width:${LABEL_COL_PX}px">` + `<col style="width:${DAY_COL_PX}px">`.repeat(n) + '</colgroup>';
+
+// columns: [{label, dates, weekstart}]; weekHeader: [{label, span}] or null
+function buildTable(pattern, days, columns, weekHeader, fixedGrid) {
+  let html = fixedGrid
+    ? `<table style="${gridStyle(columns.length)}">${colgroup(columns.length)}<thead>`
+    : '<table><thead>';
+  if (weekHeader) {
+    html += '<tr class="weeks"><th class="corner"></th>' +
+      weekHeader.map((w) => `<th colspan="${w.span}" class="weekstart">${w.label}</th>`).join('') + '</tr>';
+  }
+  html += '<tr class="days"><th class="corner">Metric</th>' +
+    columns.map((c) => `<th class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}${c.live ? ' live' : ''}">${c.label}</th>`).join('') +
+    '</tr></thead><tbody>';
+
+  for (const r of metricRows(pattern, days)) {
+    html += `<tr class="${r.cls}${r.blockend ? ' blockend' : ''}"><th>${r.label}</th>`;
+    for (const c of columns) {
+      const v = r.fn(c.dates);
+      html += `<td class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}${c.live ? ' live' : ''}` +
+        `${v === '0' || v === '-' ? ' zero' : ''}" title="${r.tip}">${v}</td>`;
+    }
+    html += '</tr>';
+  }
+  return html + '</tbody></table>';
+}
+
+// Range table: same day grid as the daily table, with each range's aggregate
+// spanning exactly its date columns. Accepts several non-overlapping ranges —
+// they appear side by side in the same rows, positioned under their dates.
+function buildRangeTable(pattern, days, weeks, ranges, headerMode = 'weeks') {
+  const allDates = weeks.flatMap((w) => w.dates);
+  // segments: alternating gaps and range spans, in date order
+  const segs = [];
+  let cursor = 0;
+  for (const r of [...ranges].sort((a, b) => (a.start < b.start ? -1 : 1))) {
+    const dates = allDates.filter((d) => d >= r.start && d <= r.end);
+    if (!dates.length) continue;
+    const startIdx = allDates.indexOf(dates[0]);
+    if (startIdx > cursor) segs.push({ gap: startIdx - cursor });
+    segs.push({ dates });
+    cursor = startIdx + dates.length;
+  }
+  if (cursor < allDates.length) segs.push({ gap: allDates.length - cursor });
+
+  const inAny = (d) => ranges.some((r) => d >= r.start && d <= r.end);
+  // top header: calendar weeks, or one merged cell per period
+  const topHeader = headerMode === 'ranges'
+    ? segs.map((seg) => seg.gap
+        ? `<th colspan="${seg.gap}" class="out"></th>`
+        : `<th colspan="${seg.dates.length}" class="weekstart">${seg.dates[0]} → ${seg.dates[seg.dates.length - 1]}</th>`
+      ).join('')
+    : weeks.map((w) => `<th colspan="${w.dates.length}" class="weekstart">${weekLabel(w)}</th>`).join('');
+  let html = `<table style="${gridStyle(allDates.length)}">${colgroup(allDates.length)}<thead>` +
+    `<tr class="weeks"><th class="corner"></th>${topHeader}` +
+    '</tr><tr class="days"><th class="corner">Metric</th>';
+  for (const w of weeks) {
+    w.dates.forEach((d, i) => {
+      html += `<th class="${i === 0 ? 'weekstart' : ''}${isWeekend(d) ? ' wknd' : ''}${inAny(d) ? '' : ' out'}">${fmtDay(d)}</th>`;
+    });
+  }
+  html += '</tr></thead><tbody>';
+
+  for (const r of metricRows(pattern, days)) {
+    html += `<tr class="${r.cls}${r.blockend ? ' blockend' : ''}"><th>${r.label}</th>`;
+    for (const seg of segs) {
+      if (seg.gap) {
+        html += `<td class="out" colspan="${seg.gap}"></td>`;
+      } else {
+        const v = r.fn(seg.dates);
+        html += `<td class="span${v === '0' || v === '-' ? ' zero' : ''}" colspan="${seg.dates.length}" ` +
+          `title="${r.tip}">${v}</td>`;
+      }
+    }
+    html += '</tr>';
+  }
+  return html + '</tbody></table>';
+}
+
+function render() {
+  const { snapshot, patterns } = PAYLOAD;
+  if (!snapshot) { $('empty').hidden = false; $('dailyWrap').innerHTML = $('weeklyWrap').innerHTML = ''; return; }
+  $('empty').hidden = true;
+
+  const pattern = patterns.find((p) => p.id === currentPatternId) || patterns[0];
+  $('patternSelect').value = pattern.id;
+  const days = snapshot.data[pattern.id] || {};
+  const dates = dateList(snapshot.startDate, snapshot.endDate);
+
+  $('rangeMeta').textContent =
+    `${snapshot.startDate} → ${snapshot.endDate} · updated ${new Date(snapshot.generatedAt).toLocaleString()}`;
+  const ctrEvents = ctrEventsOf(days);
+  $('eventsLine').innerHTML =
+    `CTR events (auto-discovered cc_ai_*): ${ctrEvents.length ? ctrEvents.map((e) => `<code>${e}</code>`).join(' + ') : '<em>none found yet</em>'}` +
+    ` &nbsp;·&nbsp; also tracked: <code>all_button_clicks</code>` +
+    ` &nbsp;·&nbsp; Pattern: <code>${pattern.regex}</code>` +
+    (pattern.excludeRegex ? ` minus <code>${pattern.excludeRegex}</code>` : '') +
+    ' &nbsp;·&nbsp; Sessions exclude Direct traffic from China & Singapore' +
+    ((PAYLOAD.experiments || []).some((x) => x.url === pattern.id && x.implDate && !x.evalEnd)
+      ? ' &nbsp;·&nbsp; <span class="liveHint">blue-tinted days = running experiment window</span>' : '');
+
+  // group consecutive dates into Mon–Sun weeks
+  const weeks = [];
+  for (const date of dates) {
+    const last = weeks[weeks.length - 1];
+    if (!last || parseDate(date).getUTCDay() === 1) weeks.push({ dates: [date] });
+    else last.dates.push(date);
+  }
+
+  // days inside a *running* experiment's evaluation window get a blue tint
+  const runningDates = new Set();
+  for (const x of (PAYLOAD.experiments || []).filter((x) => x.url === pattern.id && x.implDate && !x.evalEnd)) {
+    for (const d of dateList(evalStart(x.implDate), snapshot.endDate)) runningDates.add(d);
+  }
+
+  const dailyCols = weeks.flatMap((w) =>
+    w.dates.map((d, i) => ({ label: fmtDay(d), dates: [d], weekstart: i === 0, wknd: isWeekend(d), live: runningDates.has(d) })));
+  const weekHeader = weeks.map((w) => ({ label: weekLabel(w), span: w.dates.length }));
+  $('dailyWrap').innerHTML = buildTable(pattern, days, dailyCols, weekHeader, true);
+
+  const weeklyCols = weeks.map((w) => ({ label: weekLabel(w), dates: w.dates, weekstart: true }));
+  $('weeklyWrap').innerHTML = buildTable(pattern, days, weeklyCols, null);
+
+  renderRangeTables(pattern, days, weeks);
+
+  $('dailyWrap').scrollLeft = $('dailyWrap').scrollWidth; // newest days in view (range cards follow via sync)
+  $('weeklyWrap').scrollLeft = $('weeklyWrap').scrollWidth;
+}
+
+// ---- custom date-range tables ---------------------------------------------
+const customRanges = []; // [{start, end}] — re-rendered on every pattern switch
+
+function renderRangeTables(pattern, days, weeks) {
+  const wrap = $('rangeTables');
+  wrap.innerHTML = '';
+  const allDates = weeks.flatMap((w) => w.dates);
+  const snapEnd = PAYLOAD.snapshot.endDate;
+
+  // Experiment evaluation periods: configured presets plus the evaluation
+  // ranges of every web experiment whose affected URL is this pattern.
+  // Shown side by side AND positioned under their dates in the daily grid;
+  // non-overlapping ranges share one aligned table ("lane"), overlaps open
+  // further lanes below.
+  const expRanges = (PAYLOAD.experiments || [])
+    .filter((x) => x.url === pattern.id && x.implDate)
+    .map((x) => ({ start: evalStart(x.implDate), end: x.evalEnd || snapEnd }));
+  const seen = new Set();
+  const presets = [...(pattern.presetRanges || []).map((r) => ({ start: r.start, end: r.end || snapEnd })), ...expRanges]
+    .filter((r) => { const k = r.start + '|' + r.end; if (seen.has(k)) return false; seen.add(k); return true; })
+    .sort((a, b) => (a.start < b.start ? -1 : 1));
+  const lanes = [];
+  for (const r of presets) {
+    let lane = lanes.find((L) => L.every((x) => x.end < r.start || x.start > r.end));
+    if (!lane) lanes.push((lane = []));
+    lane.push(r);
+  }
+  lanes.forEach((lane, i) => {
+    const card = document.createElement('section');
+    card.className = 'rangeCard aligned';
+    card.innerHTML =
+      `<div class="rangeHead"><strong>Experiment evaluation periods${lanes.length > 1 ? ` (${i + 1}/${lanes.length})` : ''}: ` +
+      `${lane.map((r) => `${r.start} → ${r.end}`).join(' · ')}</strong></div>` +
+      `<div class="tableWrap">${buildRangeTable(pattern, days, weeks, lane, 'ranges')}</div>`;
+    wrap.appendChild(card);
+  });
+
+  customRanges.forEach((r, idx) => {
+    const card = document.createElement('section');
+    card.className = 'rangeCard aligned';
+    card.innerHTML =
+      `<div class="rangeHead"><strong>Date range: ${r.start} → ${r.end}</strong>` +
+      `<button class="closeX" title="Remove this range" data-idx="${idx}">✕</button></div>` +
+      `<div class="tableWrap">${buildRangeTable(pattern, days, weeks, [r])}</div>`;
+    card.querySelector('.closeX').addEventListener('click', () => {
+      customRanges.splice(idx, 1);
+      render();
+    });
+    wrap.appendChild(card);
+  });
+
+  // keep every aligned range card horizontally in lockstep with the daily table,
+  // so each aggregate stays under the same date columns it was computed from
+  const panes = [$('dailyWrap'), ...wrap.querySelectorAll('.rangeCard.aligned .tableWrap')];
+  let syncing = false;
+  for (const pane of panes) {
+    pane.addEventListener('scroll', () => {
+      if (syncing) return;
+      syncing = true;
+      for (const other of panes) if (other !== pane) other.scrollLeft = pane.scrollLeft;
+      requestAnimationFrame(() => { syncing = false; });
+    });
+  }
+}
+
+$('addRangeBtn').addEventListener('click', () => {
+  const s = PAYLOAD?.snapshot;
+  if (!s) return;
+  for (const el of [$('rangeStart'), $('rangeEnd')]) { el.min = s.startDate; el.max = s.endDate; }
+  if (!$('rangeStart').value) $('rangeStart').value = s.startDate;
+  if (!$('rangeEnd').value) $('rangeEnd').value = s.endDate;
+  $('rangeForm').hidden = false;
+  $('addRangeBtn').hidden = true;
+});
+
+$('rangeCancel').addEventListener('click', () => {
+  $('rangeForm').hidden = true;
+  $('addRangeBtn').hidden = false;
+});
+
+$('rangeApply').addEventListener('click', () => {
+  let start = $('rangeStart').value, end = $('rangeEnd').value;
+  if (!start || !end) return;
+  if (start > end) [start, end] = [end, start];
+  customRanges.push({ start, end });
+  $('rangeForm').hidden = true;
+  $('addRangeBtn').hidden = false;
+  render();
+});
+
+// ---- top-level views: AI CTR Dashboard / Web experiments -------------------
+for (const btn of document.querySelectorAll('#topTabs button')) {
+  btn.addEventListener('click', () => {
+    for (const b of document.querySelectorAll('#topTabs button')) b.classList.toggle('active', b === btn);
+    $('ctrView').hidden = btn.dataset.view !== 'ctr';
+    $('expView').hidden = btn.dataset.view !== 'exp';
+    $('tlView').hidden = btn.dataset.view !== 'tl';
+    if (btn.dataset.view === 'tl') sizeTimelineLanes();
+  });
+}
+
+// ---- web experiments --------------------------------------------------------
+const CTR_TREND_HELP = `What this column tells you:
+
+It shows how the trial-intent CTR developed under the experiment, compared against a fair "before" value. Counted as trial-intent clicks: cc_ai_free_trial plus every AI-agent click event on the page (e.g. cc_ai_claude_trial, cc_ai_chatgpt_app — the same set as the all_ai_agent_clicks row), since both contribute to the goal of starting trials. Divided by engaged sessions of the chosen traffic type.
+
+Why organic traffic by default? Organic visitors arrive on their own, so their clicking behavior reflects the page itself. Paid traffic changes whenever campaigns, budgets or targeting change — a CTR shift there could be caused by the campaign, not by the experiment.
+
+Why sometimes paid? On pages with very little organic traffic, a handful of visitors would make the CTR jump around randomly and a trend would be meaningless. There we use paid traffic instead — on those pages it's the traffic that matters anyway. The label in the cell always tells you which one you're looking at. Organic clicks are always measured against organic sessions only, and paid clicks against paid sessions only — the two are never mixed.
+
+What is it compared against? Ideally the previous experiment on the same page — its CTR over its own evaluation period. For the first experiment on a page, we instead take an equally long period from before the implementation, shifted back by whole weeks so it contains exactly the same weekdays (weekend CTR behaves very differently from weekdays, so the mix must match).
+
+Hover the value itself to see the exact comparison source and the min/max of the daily line.`;
+
+const EXP_COLUMNS = ['Affected URL', 'Experiment', 'Original', 'Changes', 'Hypothesis', 'Ticket',
+  'Implementation date', 'Evaluation period start', 'Evaluation period end',
+  `CTR trend <span class="infoI" title="${CTR_TREND_HELP.replace(/"/g, '&quot;')}">i</span>`,
+  'AI Evaluation', 'AI Test suggestions', ''];
+
+// CTR trend: daily cc_ai_free_trial CTR over the evaluation period, on Organic
+// traffic (least affected by campaigns). If organic volume is below a critical
+// amount, fall back to Paid.
+const SPARK_EVENT = 'cc_ai_free_trial';
+// below ~50 organic sessions/day the per-event CTR is too noisy → use Paid
+// (calibrated: /ai/ runs ~56-61 organic/day, ds-to-llm patterns ~35-40)
+const MIN_ORGANIC_SESSIONS_PER_DAY = 50;
+
+// clamp a date list to the days the snapshot actually covers
+function snapDates(start, end) {
+  const snap = PAYLOAD.snapshot;
+  const s = start < snap.startDate ? snap.startDate : start;
+  const e = end > snap.endDate ? snap.endDate : end;
+  return s > e ? [] : dateList(s, e);
+}
+
+// trend metric: free-trial clicks plus every AI-agent click on the pattern —
+// both contribute to the trial-start goal
+const trendEventsOf = (days) => [...new Set([SPARK_EVENT, ...agentEventsOf(days)])];
+
+const periodCtr = (days, dates, bucket, evNames) => {
+  const s = sessSum(days, dates, bucket);
+  return s ? (eventSum(days, dates, evNames, bucket) / s) * 100 : null;
+};
+
+// comparison CTR: the previous experiment on the same pattern, or — if none —
+// a pre-period of the same length shifted back by whole weeks, so the weekday
+// mix is identical (weekend CTR differs a lot from weekdays).
+function baselineCtr(x, days, bucket, start, len, evNames) {
+  const prev = (PAYLOAD.experiments || [])
+    .filter((p) => p !== x && p.url === x.url && p.implDate && p.implDate < x.implDate)
+    .sort((a, b) => b.implDate.localeCompare(a.implDate))[0];
+  if (prev) {
+    const pDates = snapDates(evalStart(prev.implDate), prev.evalEnd || PAYLOAD.snapshot.endDate);
+    const ctr = pDates.length ? periodCtr(days, pDates, bucket, evNames) : null;
+    if (ctr !== null) return { ctr, label: `previous experiment “${prev.title}”` };
+  }
+  const shift = 7 * Math.ceil(len / 7); // whole weeks back → same weekday mix, no overlap
+  const bStart = iso(addDays(parseDate(start), -shift));
+  const bEnd = iso(addDays(parseDate(start), -shift + len - 1));
+  const bDates = snapDates(bStart, bEnd);
+  if (!bDates.length) return { ctr: null, label: 'no baseline data' };
+  return {
+    ctr: periodCtr(days, bDates, bucket, evNames),
+    label: `pre-period ${bDates[0]} → ${bDates[bDates.length - 1]} (weekday-aligned${bDates.length < len ? ', partial' : ''})`,
+  };
+}
+
+function sparkline(x) {
+  const snap = PAYLOAD.snapshot;
+  const days = snap?.data?.[x.url];
+  if (!days || !x.implDate) return '';
+  const start = evalStart(x.implDate);
+  const end = x.evalEnd || snap.endDate;
+  const dates = snapDates(start, end);
+  if (!dates.length) return '';
+  const len = (parseDate(end) - parseDate(start)) / 86400000 + 1;
+
+  const organicTotal = dates.reduce((a, d) => a + (days[d]?.s.organic ?? 0), 0);
+  const bucket = organicTotal / dates.length >= MIN_ORGANIC_SESSIONS_PER_DAY ? 'organic' : 'paid';
+  const bucketLabel = bucket === 'organic' ? 'Organic' : 'Paid';
+
+  const evNames = trendEventsOf(days);
+  const expCtr = periodCtr(days, dates, bucket, evNames);
+  if (expCtr === null) return '';
+  const base = baselineCtr(x, days, bucket, start, len, evNames);
+  const baseTxt = base.ctr === null ? 'n/a' : base.ctr.toFixed(1) + '%';
+  const delta = base.ctr ? ` (${expCtr >= base.ctr ? '+' : ''}${(((expCtr - base.ctr) / base.ctr) * 100).toFixed(0)}%)` : '';
+
+  // daily trend line within the evaluation period
+  const vals = dates.map((d) => {
+    const s = days[d]?.s[bucket] ?? 0;
+    return s ? (eventSum(days, [d], evNames, bucket) / s) * 100 : null;
+  });
+  const nums = vals.filter((v) => v !== null);
+  let svg = '';
+  if (nums.length >= 2) {
+    const min = Math.min(...nums), max = Math.max(...nums), span = (max - min) || 1;
+    const W = 110, H = 26, P = 2;
+    const pts = vals
+      .map((v, i) => v === null ? null :
+        `${(P + (i * (W - 2 * P)) / (dates.length - 1)).toFixed(1)},${(H - P - ((v - min) * (H - 2 * P)) / span).toFixed(1)}`)
+      .filter(Boolean);
+    svg = `<svg width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="#0b5fff" stroke-width="1.3"/></svg>`;
+  }
+
+  return `<span title="Trial-intent CTR (${evNames.join(' + ')}), ${bucketLabel} traffic. Baseline (${base.label}): ${baseTxt}. ` +
+    `Evaluation period aggregate: ${expCtr.toFixed(1)}%. Line = daily CTR within the evaluation period.">` +
+    `${svg}<small>${bucketLabel}: ${baseTxt} → ${expCtr.toFixed(1)}%${delta}</small></span>`;
+}
+
+const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const evalStart = (implDate) => implDate ? iso(addDays(parseDate(implDate), 1)) : '';
+
+// auto-generate a short (≤3 words) title from the changes/hypothesis text;
+// used whenever the title field is left empty. Manual rename always wins.
+const TITLE_STOPWORDS = new Set(('the a an of to too and or for with in on by is are was be being shall should we our their this that ' +
+  'it its as at from into up down over under more most less new old previous version page pages again only ' +
+  'each one all any some h2 h3 cta ctas ctr').split(' '));
+function autoTitle(exp) {
+  const src = (exp.experiment || exp.hypothesis || '').replace(/[^\p{L}\p{N}\s-]/gu, ' ');
+  const words = src.split(/\s+/).filter((w) => w.length > 2 && !TITLE_STOPWORDS.has(w.toLowerCase()));
+  if (!words.length) return 'Experiment ' + (exp.implDate || '');
+  return words.slice(0, 3).map((w) => w[0].toUpperCase() + w.slice(1)).join(' ').slice(0, 40);
+}
+
+let expUrlFilter = ''; // '' = show all
+
+function renderExperiments() {
+  const exps = PAYLOAD.experiments || [];
+  const readOnly = !!window.__EMBEDDED__;
+  // filter dropdown in the Affected URL header: only URLs present in the column
+  const usedUrls = [...new Set(exps.map((x) => x.url))];
+  const urlFilterHtml = `<br><select id="expUrlFilterSel"><option value="">(all)</option>` +
+    usedUrls.map((u) => {
+      const label = PAYLOAD.patterns.find((p) => p.id === u)?.label ?? u;
+      return `<option value="${esc(u)}"${u === expUrlFilter ? ' selected' : ''}>${esc(label)}</option>`;
+    }).join('') + '</select>';
+  // proportional widths: prose columns get the space, dates/ticket stay narrow
+  const widths = ['8.5%', '6.5%', '11%', '12.5%', '13%', '4%', '5.5%', '5.5%', '5.5%', '6%', '11%', '9.5%', '1.5%'];
+  let html = '<table><colgroup>' + widths.map((w) => `<col style="width:${w}">`).join('') + '</colgroup>' +
+    '<thead><tr>' + EXP_COLUMNS.map((c, i) => `<th>${c}${i === 0 ? urlFilterHtml : ''}</th>`).join('') + '</tr></thead><tbody>';
+  const clamp = (s) => `<span class="cellText" title="Click to expand/collapse">${esc(s)}</span>`;
+  // Original/Changes cells can carry a screenshot (stored as a data URI, so the
+  // standalone artifact keeps it too). Attach: copy an image → 📋 button.
+  const IMG_FIELD = { original: 'originalImg', experiment: 'changesImg' };
+  const proseCell = (x, i, field, ro) => {
+    const f = IMG_FIELD[field];
+    let h = '';
+    if (x[f]) {
+      h += `<div class="imgWrap"><img class="cellImg" src="${x[f]}">` +
+        (ro ? '' : `<button class="imgDel" data-i="${i}" data-f="${f}" title="Remove image">✕</button>`) + '</div>';
+    }
+    h += clamp(x[field]);
+    if (!x[f] && !ro) h += `<button class="imgAdd" data-i="${i}" data-f="${f}" title="Copy an image to the clipboard first, then click here to attach it">📋 add image</button>`;
+    return h;
+  };
+  // evaluation/suggestion cells: AI-written text + an update-request button.
+  // Clicking flags the experiment; the next Claude run (Monday refresh or an
+  // interactive session) re-analyzes it against fresh CTR data + live pages.
+  const evalCell = (x, i, field, ro) => {
+    const badge = x.evalUpdateRequested
+      ? '<div class="updPending">⟳ update requested — refreshed on the next Claude run</div>' : '';
+    const btn = ro || x.evalUpdateRequested ? '' :
+      `<button class="updBtn" data-i="${i}" title="Request a fresh AI evaluation based on current data">⟳ update</button>`;
+    return `${badge}${clamp(x[field])}${btn}`;
+  };
+  // newest experiments first; data-i keeps the original index for edit/delete
+  const ordered = exps.map((x, i) => [x, i])
+    .filter(([x]) => !expUrlFilter || x.url === expUrlFilter)
+    .sort(([a], [b]) => (b.implDate || '').localeCompare(a.implDate || ''));
+  for (const [x, i] of ordered) {
+    const ticket = /^https?:\/\//.test(x.ticket || '')
+      ? `<a href="${esc(x.ticket)}" target="_blank">${/asana\.com/.test(x.ticket) ? 'Asana' : esc(x.ticket.split('/')[2] || x.ticket)}</a>`
+      : esc(x.ticket);
+    const urlLabel = PAYLOAD.patterns.find((p) => p.id === x.url)?.label ?? x.url;
+    html += `<tr><td><code>${esc(urlLabel)}</code></td>` +
+      `<td><strong class="titleCell" data-i="${i}" title="Click to rename">${esc(x.title)}</strong></td>` +
+      `<td>${proseCell(x, i, 'original', readOnly)}</td><td>${proseCell(x, i, 'experiment', readOnly)}</td>` +
+      `<td>${clamp(x.hypothesis)}</td><td>${ticket}</td>` +
+      `<td>${readOnly ? esc(x.implDate) : `<span class="dateCell" data-i="${i}" data-f="implDate" title="Click to change">${esc(x.implDate)}</span>`}</td>` +
+      `<td>${evalStart(x.implDate)}</td>` +
+      `<td>${readOnly ? (esc(x.evalEnd) || '<em>running</em>') : `<span class="dateCell" data-i="${i}" data-f="evalEnd" title="Click to change (empty = running)">${esc(x.evalEnd) || '<em>running</em>'}</span>`}</td>` +
+      `<td>${sparkline(x)}</td>` +
+      `<td>${evalCell(x, i, 'evaluation', readOnly)}</td><td>${evalCell(x, i, 'suggestions', readOnly)}</td>` +
+      `<td>${readOnly ? '' : `<button class="delX" data-i="${i}" title="Remove">✕</button>`}</td></tr>`;
+  }
+  if (!readOnly) {
+    // empty row: click any cell to add a new experiment inline
+    html += `<tr class="newRow"><td>+ add experiment…</td>${'<td></td>'.repeat(EXP_COLUMNS.length - 1)}</tr>`;
+  }
+  html += '</tbody></table>';
+  $('expWrap').innerHTML = html;
+  for (const btn of $('expWrap').querySelectorAll('.delX')) {
+    btn.addEventListener('click', async () => {
+      PAYLOAD.experiments.splice(Number(btn.dataset.i), 1);
+      await saveExperiments();
+      renderExperiments();
+      render(); // evaluation-period tables on the CTR tab depend on experiments
+      renderTimelines();
+    });
+  }
+  $('expWrap').querySelector('tr.newRow')?.addEventListener('click', showNewExpEditor, { once: true });
+  $('expUrlFilterSel').addEventListener('change', (e) => {
+    expUrlFilter = e.target.value;
+    renderExperiments();
+  });
+  for (const cell of $('expWrap').querySelectorAll('.cellText')) {
+    cell.addEventListener('click', () => cell.closest('tr').classList.toggle('expanded'));
+  }
+  for (const btn of $('expWrap').querySelectorAll('.imgAdd')) {
+    btn.addEventListener('click', async () => {
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const type = item.types.find((t) => t.startsWith('image/'));
+          if (!type) continue;
+          const blob = await item.getType(type);
+          const dataUri = await new Promise((res) => {
+            const fr = new FileReader();
+            fr.onload = () => res(fr.result);
+            fr.readAsDataURL(blob);
+          });
+          PAYLOAD.experiments[Number(btn.dataset.i)][btn.dataset.f] = dataUri;
+          await saveExperiments();
+          renderExperiments();
+          return;
+        }
+        alert('No image found in the clipboard — copy an image first, then click the button again.');
+      } catch (e) {
+        alert('Could not read the clipboard: ' + e.message);
+      }
+    });
+  }
+  for (const btn of $('expWrap').querySelectorAll('.imgDel')) {
+    btn.addEventListener('click', async () => {
+      delete PAYLOAD.experiments[Number(btn.dataset.i)][btn.dataset.f];
+      await saveExperiments();
+      renderExperiments();
+    });
+  }
+  for (const btn of $('expWrap').querySelectorAll('.updBtn')) {
+    btn.addEventListener('click', async () => {
+      PAYLOAD.experiments[Number(btn.dataset.i)].evalUpdateRequested = true;
+      await saveExperiments();
+      renderExperiments();
+    });
+  }
+  // click a date to change it (implementation date or evaluation end;
+  // clearing the end date sets the experiment back to "running")
+  if (!readOnly) {
+    for (const el of $('expWrap').querySelectorAll('.dateCell')) {
+      el.addEventListener('click', () => {
+        const i = Number(el.dataset.i), f = el.dataset.f;
+        const exp = PAYLOAD.experiments[i];
+        const td = el.parentElement;
+        td.innerHTML = `<input type="date" value="${esc(exp[f] || '')}">`;
+        const inp = td.querySelector('input');
+        inp.focus();
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') inp.blur();
+          if (e.key === 'Escape') { inp.value = exp[f] || ''; inp.blur(); }
+        });
+        inp.addEventListener('blur', async () => {
+          if (f === 'implDate' && !inp.value) { renderExperiments(); return; } // implementation date is required
+          exp[f] = inp.value;
+          await saveExperiments();
+          renderExperiments();
+          render();          // evaluation periods + running-window tint move with the dates
+          renderTimelines(); // timeline bands too
+        });
+      });
+    }
+  }
+  // click a title to rename it (empty input → regenerate automatically)
+  if (!readOnly) {
+    for (const el of $('expWrap').querySelectorAll('.titleCell')) {
+      el.addEventListener('click', () => {
+        const i = Number(el.dataset.i);
+        const exp = PAYLOAD.experiments[i];
+        const td = el.parentElement;
+        td.innerHTML = `<input value="${esc(exp.title || '')}">`;
+        const inp = td.querySelector('input');
+        inp.focus();
+        inp.select();
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') inp.blur();
+          if (e.key === 'Escape') { inp.value = exp.title || ''; inp.blur(); }
+        });
+        inp.addEventListener('blur', async () => {
+          exp.title = inp.value.trim() || autoTitle(exp);
+          await saveExperiments();
+          renderExperiments();
+          render(); // baseline tooltips on the CTR tab reference titles
+        });
+      });
+    }
+  }
+}
+
+// turn the empty row into an inline editor
+function showNewExpEditor() {
+  const row = $('expWrap').querySelector('tr.newRow');
+  if (!row) return;
+  row.classList.remove('newRow');
+  row.innerHTML =
+    `<td><select id="neUrl">${patternOptionsHtml()}</select></td>` +
+    `<td><input id="neTitle" placeholder="Title (auto if empty)"></td>` +
+    `<td><textarea id="neOriginal" placeholder="Original"></textarea></td>` +
+    `<td><textarea id="neChanges" placeholder="Changes"></textarea></td>` +
+    `<td><textarea id="neHypothesis" placeholder="Hypothesis"></textarea></td>` +
+    `<td><input id="neTicket" placeholder="Ticket (id or URL)"></td>` +
+    `<td><input type="date" id="neImpl"></td>` +
+    `<td id="neEvalStart" class="zero">—</td>` +
+    `<td><input type="date" id="neEvalEnd"></td>` +
+    `<td></td><td></td><td></td>` +
+    `<td><button id="neSave">Save</button> <button id="neCancel">Cancel</button></td>`;
+  $('neImpl').addEventListener('input', () => {
+    $('neEvalStart').textContent = evalStart($('neImpl').value) || '—';
+  });
+  $('neCancel').addEventListener('click', renderExperiments);
+  $('neSave').addEventListener('click', async () => {
+    const exp = {
+      url: $('neUrl').value,
+      title: $('neTitle').value.trim(),
+      original: $('neOriginal').value.trim(),
+      experiment: $('neChanges').value.trim(), // "Changes" column; field name kept for compatibility
+      hypothesis: $('neHypothesis').value.trim(),
+      ticket: $('neTicket').value.trim(),
+      implDate: $('neImpl').value,
+      evalEnd: $('neEvalEnd').value,
+    };
+    if (!exp.implDate) { alert('Implementation date is required.'); return; }
+    if (!exp.title) exp.title = autoTitle(exp);
+    (PAYLOAD.experiments ??= []).push(exp);
+    await saveExperiments();
+    renderExperiments();
+    render(); // evaluation-period tables on the CTR tab depend on experiments
+    renderTimelines();
+  });
+}
+
+async function saveExperiments() {
+  await fetch('/api/experiments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(PAYLOAD.experiments),
+  });
+}
+
+// ---- experiment timeline tab ------------------------------------------------
+// One chart per pattern that has experiments: volume-weighted 7-day trial-intent
+// CTR line, faint daily dots, experiment evaluation periods as bands with their
+// dashed baseline level, and a separate session-volume mini-pane below.
+function renderTimelines() {
+  const wrap = $('tlCharts');
+  const snap = PAYLOAD?.snapshot;
+  if (!snap) { wrap.innerHTML = '<p class="tlIntro">No data snapshot yet.</p>'; return; }
+  const dates = dateList(snap.startDate, snap.endDate);
+  let html = '<p class="tlIntro">Each chart: the <strong style="color:var(--accent)">blue line</strong> is the 7-day trial-intent CTR ' +
+    '(free-trial + AI-agent clicks ÷ engaged sessions, volume-weighted); dots are single days. Shaded bands are experiment ' +
+    'evaluation periods — the dashed line inside each band is that experiment\'s baseline, so line above dashed = better than before. ' +
+    'Gray bars below show engaged-session volume. Hover days and bands for details. Patterns without experiments are not shown.</p>';
+  let any = false;
+  for (const p of PAYLOAD.patterns) {
+    const exps = (PAYLOAD.experiments || []).filter((x) => x.url === p.id && x.implDate)
+      .sort((a, b) => a.implDate.localeCompare(b.implDate));
+    if (!exps.length) continue;
+    any = true;
+    html += timelineChart(p, exps, dates);
+  }
+  wrap.innerHTML = any ? html : '<p class="tlIntro">No experiments yet — add one in the Web experiments tab.</p>';
+  sizeTimelineLanes();
+}
+
+// absolute-positioned eval blocks don't size their lane container; heights can
+// only be measured while the tab is visible, so this also runs on tab switch
+function sizeTimelineLanes() {
+  if ($('tlView').hidden) return;
+  for (const lane of document.querySelectorAll('#tlCharts .tlEvalLane')) {
+    lane.style.height = Math.max(0, ...[...lane.children].map((c) => c.offsetHeight)) + 'px';
+  }
+}
+window.addEventListener('resize', sizeTimelineLanes);
+
+function timelineChart(pattern, exps, dates) {
+  const days = PAYLOAD.snapshot.data[pattern.id] || {};
+  const evNames = trendEventsOf(days);
+  const organicAvg = dates.reduce((a, d) => a + (days[d]?.s.organic ?? 0), 0) / dates.length;
+  const bucket = organicAvg >= MIN_ORGANIC_SESSIONS_PER_DAY ? 'organic' : 'paid';
+  const bucketLabel = bucket === 'organic' ? 'Organic' : 'Paid';
+
+  const n = dates.length;
+  const sess = dates.map((d) => days[d]?.s[bucket] ?? 0);
+  const evts = dates.map((d) => eventSum(days, [d], evNames, bucket));
+  const daily = dates.map((_, i) => (sess[i] ? (evts[i] / sess[i]) * 100 : null));
+  const roll = dates.map((_, i) => { // trailing 7-day volume-weighted CTR
+    let s = 0, e = 0;
+    for (let j = Math.max(0, i - 6); j <= i; j++) { s += sess[j]; e += evts[j]; }
+    return s ? (e / s) * 100 : null;
+  });
+
+  // geometry (viewBox units)
+  const W = 1000, X0 = 46, X1 = 988;
+  const CY0 = 20, CY1 = 186;      // CTR pane
+  const VY0 = 206, VY1 = 256;     // volume pane
+  const x = (i) => X0 + (i * (X1 - X0)) / Math.max(n - 1, 1);
+  const rollMax = Math.max(...roll.filter((v) => v !== null), 1);
+  const dom = Math.max(rollMax * 1.35, 5);
+  const y = (v) => CY1 - (Math.min(v, dom) / dom) * (CY1 - CY0);
+  const sessMax = Math.max(...sess, 1);
+  const yv = (v) => VY1 - (v / sessMax) * (VY1 - VY0);
+  const xi = new Map(dates.map((d, i) => [d, i]));
+
+  let s = `<svg viewBox="0 0 ${W} 272" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
+
+  // gridlines + y labels (recessive)
+  const ticks = 4;
+  for (let t = 0; t <= ticks; t++) {
+    const v = (dom / ticks) * t, gy = y(v);
+    s += `<line x1="${X0}" y1="${gy}" x2="${X1}" y2="${gy}" stroke="#eceff3" stroke-width="1"/>` +
+      `<text x="${X0 - 6}" y="${gy + 3}" text-anchor="end" font-size="9.5" fill="#98a2b3">${v.toFixed(v < 10 ? 1 : 0)}%</text>`;
+  }
+  // month ticks
+  dates.forEach((d, i) => {
+    if (d.slice(8) === '01' || i === 0) {
+      s += `<text x="${x(i)}" y="${CY1 + 12}" font-size="9.5" fill="#98a2b3">${d.slice(5, 7)}/${d.slice(0, 4)}</text>` +
+        `<line x1="${x(i)}" y1="${CY1}" x2="${x(i)}" y2="${CY1 + 3}" stroke="#c8cfd9"/>`;
+    }
+  });
+
+  // experiment bands + baselines (annotation layer under the data marks)
+  const lanes = [];
+  const evalBlocks = [];
+  for (const ex of exps) {
+    const bs = evalStart(ex.implDate);
+    const be = ex.evalEnd || PAYLOAD.snapshot.endDate;
+    const i0 = xi.get(bs < dates[0] ? dates[0] : bs), i1 = xi.get(be > dates[n - 1] ? dates[n - 1] : be);
+    if (i0 === undefined || i1 === undefined || i1 < i0) continue;
+    let lane = lanes.findIndex((endI) => endI < i0);
+    if (lane === -1) { lanes.push(i1); lane = lanes.length - 1; } else { lanes[lane] = i1; }
+    const bx0 = x(i0), bx1 = x(i1);
+    const bandDates = dates.slice(i0, i1 + 1);
+    const pCtr = periodCtr(days, bandDates, bucket, evNames);
+    const base = baselineCtr(ex, days, bucket, bs, bandDates.length, evNames);
+    const delta = base.ctr && pCtr !== null ? ` (${pCtr >= base.ctr ? '+' : ''}${(((pCtr - base.ctr) / base.ctr) * 100).toFixed(0)}%)` : '';
+    const tip = `${ex.title}\n${bs} → ${be}${ex.evalEnd ? '' : ' (running)'}\nBaseline (${base.label}): ${base.ctr === null ? 'n/a' : base.ctr.toFixed(1) + '%'}` +
+      `\nPeriod: ${pCtr === null ? 'n/a' : pCtr.toFixed(1) + '%'}${delta}`;
+    // short evaluation block shown under the chart, sized/positioned like the
+    // experiment's band (full AI evaluation on hover); dates without the year
+    const firstSentences = (ex.evaluation || '').split(/(?<=\.)\s+/).slice(0, 2).join(' ');
+    const shortEval = firstSentences.length > 220 ? firstSentences.slice(0, 217) + '…' : firstSentences;
+    let leftPct = bx0 / 10, widthPct = (bx1 - bx0) / 10;
+    if (widthPct < 13) widthPct = 13; // keep narrow bands readable
+    if (leftPct + widthPct > 98.8) leftPct = 98.8 - widthPct;
+    evalBlocks.push({
+      lane,
+      html: `<div class="tlEvalBlock" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%" title="${esc(ex.evaluation || '')}">` +
+        `<strong>${esc(ex.title)}</strong> <span class="meta">${fmtShort(bs)}–${fmtShort(be)}${ex.evalEnd ? '' : ' (running)'} · ` +
+        `${base.ctr === null ? 'n/a' : base.ctr.toFixed(1) + '%'} → ${pCtr === null ? 'n/a' : pCtr.toFixed(1) + '%'}${delta}</span>` +
+        `<br><span class="evalTxt">${shortEval ? esc(shortEval) : '(no AI evaluation yet)'}</span></div>`,
+    });
+    s += `<g><title>${esc(tip)}</title>` +
+      `<rect x="${bx0}" y="${CY0}" width="${Math.max(bx1 - bx0, 2)}" height="${CY1 - CY0}" fill="rgba(11,95,255,.055)"/>` +
+      `<line x1="${bx0}" y1="${CY0}" x2="${bx0}" y2="${CY1}" stroke="#b8c6e8" stroke-width="1"/>` +
+      `<line x1="${bx1}" y1="${CY0}" x2="${bx1}" y2="${CY1}" stroke="#b8c6e8" stroke-width="1" stroke-dasharray="2 2"/>` +
+      (base.ctr !== null && base.ctr <= dom
+        ? `<line x1="${bx0}" y1="${y(base.ctr)}" x2="${bx1}" y2="${y(base.ctr)}" stroke="#475467" stroke-width="1.4" stroke-dasharray="5 4"/>` : '') +
+      (bx0 + 4 + ex.title.length * 5.6 > X1
+        ? `<text x="${X1 - 4}" y="${CY0 + 11 + lane * 13}" text-anchor="end" font-size="10" font-weight="600" fill="#344054">${esc(ex.title)}</text>`
+        : `<text x="${bx0 + 4}" y="${CY0 + 11 + lane * 13}" font-size="10" font-weight="600" fill="#344054">${esc(ex.title)}</text>`) + '</g>';
+  }
+
+  // volume mini-pane
+  const bw = Math.max(((X1 - X0) / n) * 0.7, 0.8);
+  dates.forEach((d, i) => {
+    if (sess[i]) s += `<rect x="${x(i) - bw / 2}" y="${yv(sess[i])}" width="${bw}" height="${VY1 - yv(sess[i])}" fill="#e0e4ea"/>`;
+  });
+  s += `<line x1="${X0}" y1="${VY1}" x2="${X1}" y2="${VY1}" stroke="#d5dae2"/>` +
+    `<text x="${X0 - 6}" y="${VY0 + 4}" text-anchor="end" font-size="9.5" fill="#98a2b3">${fmtInt(sessMax)}</text>` +
+    `<text x="${X1}" y="${VY1 + 12}" text-anchor="end" font-size="9.5" fill="#98a2b3">engaged sessions/day (${bucketLabel.toLowerCase()})</text>`;
+
+  // daily dots (faint) + 7-day line
+  dates.forEach((d, i) => {
+    if (daily[i] !== null) s += `<circle cx="${x(i)}" cy="${y(daily[i])}" r="1.7" fill="#0b5fff" opacity=".3"/>`;
+  });
+  let path = '', pen = false;
+  roll.forEach((v, i) => {
+    if (v === null) { pen = false; return; }
+    path += `${pen ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`;
+    pen = true;
+  });
+  s += `<path d="${path}" fill="none" stroke="#0b5fff" stroke-width="2" stroke-linejoin="round"/>`;
+
+  // per-day hover targets (native tooltips)
+  const colW = (X1 - X0) / Math.max(n - 1, 1);
+  dates.forEach((d, i) => {
+    const t = `${d}\nCTR: ${daily[i] === null ? '–' : daily[i].toFixed(1) + '%'} · 7-day: ${roll[i] === null ? '–' : roll[i].toFixed(1) + '%'}\n${fmtInt(sess[i])} engaged sessions (${bucketLabel.toLowerCase()})`;
+    s += `<rect x="${x(i) - colW / 2}" y="${CY0}" width="${colW}" height="${VY1 - CY0}" fill="transparent"><title>${esc(t)}</title></rect>`;
+  });
+
+  s += '</svg>';
+  // one positioned row ("lane") per set of non-overlapping experiments,
+  // mirroring the band lanes in the chart above
+  const maxLane = Math.max(-1, ...evalBlocks.map((b) => b.lane));
+  let evalsHtml = '';
+  for (let l = 0; l <= maxLane; l++) {
+    evalsHtml += `<div class="tlEvalLane">${evalBlocks.filter((b) => b.lane === l).map((b) => b.html).join('')}</div>`;
+  }
+  return `<div class="tlChart"><h3>${esc(pattern.label)}</h3>` +
+    `<span class="meta">Trial-intent CTR · ${bucketLabel} traffic · 7-day volume-weighted line, single-day dots</span>${s}${evalsHtml}</div>`;
+}
+
+let currentPatternId = null;
+
+// In the standalone artifact, API calls go to the local dashboard server.
+const API = window.__EMBEDDED__ ? 'http://localhost:3010' : '';
+
+// group the pattern list for dropdowns
+const patternGroup = (p) =>
+  p.id.startsWith('ai-connect') ? '/ai/connect/ pages' :
+  p.id.startsWith('drivers') ? '/drivers/ pages' : 'General';
+
+function patternOptionsHtml() {
+  const groups = new Map();
+  for (const p of PAYLOAD.patterns) {
+    const g = patternGroup(p);
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(p);
+  }
+  return [...groups.entries()].map(([g, ps]) =>
+    `<optgroup label="${g}">` + ps.map((p) => `<option value="${p.id}">${p.label}</option>`).join('') + '</optgroup>'
+  ).join('');
+}
+
+async function load() {
+  // Standalone artifact build: data is embedded, no server needed for viewing.
+  PAYLOAD = window.__EMBEDDED__ || await (await fetch('/api/data')).json();
+  if (window.__EMBEDDED__) {
+    // show the refresh button only where the local dashboard server responds
+    // (the author's machine); viewers get a data-freshness stamp instead
+    const btn = $('refreshBtn');
+    btn.style.display = 'none';
+    const stamp = document.createElement('span');
+    stamp.className = 'meta';
+    stamp.textContent = `Data as of ${PAYLOAD.snapshot?.endDate ?? '—'} · refreshed automatically every Monday`;
+    btn.after(stamp);
+    fetch(API + '/api/refresh', { signal: AbortSignal.timeout(1500) })
+      .then((r) => { if (r.ok) { btn.style.display = ''; stamp.remove(); } })
+      .catch(() => {});
+  }
+  const sel = $('patternSelect');
+  sel.innerHTML = patternOptionsHtml();
+  sel.onchange = () => {
+    currentPatternId = sel.value;
+    render();
+  };
+  render();
+  renderExperiments();
+  renderTimelines();
+}
+
+$('refreshBtn').addEventListener('click', async () => {
+  const btn = $('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'Refreshing…';
+  try {
+    await fetch(API + '/api/refresh', { method: 'POST' });
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Refresh data';
+    alert('The dashboard server is not running.\n\nStart it once (it launches the data engine by itself):\n' +
+      'cd teams\\team-5\\ctr-dashboard && node server.js\n\nOr open http://localhost:3010 from a running session.');
+    return;
+  }
+  const poll = setInterval(async () => {
+    let st;
+    try {
+      st = await (await fetch(API + '/api/refresh')).json();
+    } catch { return; } // transient — keep polling
+    if (st.running) {
+      btn.textContent = (st.step || 'Refreshing') + '…';
+      return;
+    }
+    clearInterval(poll);
+    btn.disabled = false;
+    btn.textContent = 'Refresh data';
+    if (st.lastError) {
+      alert('Refresh failed: ' + st.lastError);
+    } else if (window.__EMBEDDED__) {
+      // pull the fresh data into this static page; the file on disk was
+      // rewritten too, so the bookmark is current on next full reload
+      PAYLOAD = await (await fetch(API + '/api/data')).json();
+      render();
+      renderExperiments();
+    } else {
+      await load();
+    }
+  }, 3000);
+});
+
+load();
+</script>
+</body>
+</html>

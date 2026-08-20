@@ -1,0 +1,123 @@
+[
+  {
+    "url": "ai-connect-ds-to-llm",
+    "original": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude — for live, trusted answers and actions with zero data copies.\nH3: Give Salesforce rich semantic context and real-time data from Anthropic Claude so it can answer precisely and take safe, effective actions across your business.",
+    "experiment": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude\nremove H3 --> move CTAs up\n- Instant answers, from live [datasource] data — and any other source in one prompt\n- Reliable queries on day one — no schema setup, no field-name guesswork\n- Automate [datasource] workflows safely — [llm] acts within your access rules",
+    "hypothesis": "By trimming down the text-heavy block in the hero, highlighting the CTAs, and adding more readily grasped bullet points consistently about the benefits of Connect AI, the CTR of the CTAs shall rise.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1214707910465842?focus=true",
+    "implDate": "2026-05-18",
+    "evalEnd": "2026-06-01",
+    "title": "Benefit bullets",
+    "evaluation": "No usable baseline: the measurement history starts with this experiment, so no clean pre-period exists. The period itself established the reference level for this page type — 11.6% paid trial-intent CTR, measured on a solid base of ~210 paid sessions/day with normal day-to-day variation — that later experiments are measured against.",
+    "suggestions": "Keep a stable 1–2 week measurement window before any first-of-its-kind change so a weekday-aligned baseline exists. Benefit-focused phrasing can be re-tested later against the feature-bullet benchmark."
+  },
+  {
+    "url": "ai-connect-ds-to-llm",
+    "original": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude — for live, trusted answers and actions with zero data copies.\nH3: Give Salesforce rich semantic context and real-time data from Anthropic Claude so it can answer precisely and take safe, effective actions across your business.",
+    "experiment": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude — like Salesforce into Anthropic Claude — for live, trusted answers and actions with zero data copies.\nremove H3 --> move CTAs up\n- Schema-aware MCP server — [ai-agent] reads your full [datasource] data model on connect\n- Cross-source MCP toolset — join live [datasource] with hundreds of other systems in one prompt\n- Bidirectional with identity passthrough — [ai-agent] reads and writes under your access rules",
+    "hypothesis": "By trimming down the text-heavy block in the hero, highlighting the CTAs, and adding more readily grasped bullet points consistently about the features of Connect AI, the CTR of the CTAs shall rise.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215202623951114?focus=true",
+    "implDate": "2026-06-02",
+    "evalEnd": "2026-06-16",
+    "title": "Feature bullets",
+    "evaluation": "Clear winner: feature-focused bullets lifted the paid trial-intent CTR from 11.6% to 15.0% (+29%) versus the preceding benefit-focused version. The audience on these datasource pages — technical evaluators — responds better to concrete capabilities than to outcome promises. Traffic note: the paid base more than halved between the two windows (~210 → ~94 sessions/day), so the comparison rests on unequal volumes; a lift of this size is unlikely to be a volume artifact alone, but the exact magnitude carries some uncertainty.",
+    "suggestions": "Test phrasing variants within the feature direction: concrete numbers (\"300+ sources\") vs. generic (\"hundreds\"), and the order of the three bullets. Try one hybrid bullet (feature + one-line benefit) against pure features."
+  },
+  {
+    "url": "ai",
+    "original": "H2: Connect your AI assistants and agents to hundreds of enterprise systems in minutes with a managed Model Context Protocol (MCP) platform",
+    "experiment": "The page shall display all 11 supported AI agents above the fold, each linking to the general Connect AI sign-up page.\nThe H2 shall be the headline for the AI agent logos\nThe general CTA moves up.",
+    "hypothesis": "By recognizing that this page is about connecting business data to their desired AI agent, the users should be encouraged to click on its logo and start a Connect AI trial.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215011912614119?focus=true",
+    "implDate": "2026-06-02",
+    "evalEnd": "2026-06-16",
+    "title": "Agent logo grid",
+    "evaluation": "Negative: presenting all 11 agent logos above the fold cut the organic trial-intent CTR from 24.5% to 19.3% (−21%). The clicks the logos collected did not offset the weakened primary CTA — eleven equally weighted choices diluted attention rather than helping visitors self-select. The traffic base was stable across both windows (~63 vs. ~58 organic sessions/day), making this one of the cleaner comparisons in the series.",
+    "suggestions": "If agent logos return above the fold, test a curated set of 3 with one visually dominant \"recommended\" agent. Order logos by the visitor's likely intent (e.g. paid landing keyword or referrer)."
+  },
+  {
+    "url": "ai-connect-ds-to-llm",
+    "original": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude — for live, trusted answers and actions with zero data copies.\nH3: Give Salesforce rich semantic context and real-time data from Anthropic Claude so it can answer precisely and take safe, effective actions across your business.",
+    "experiment": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude — like Salesforce into Anthropic Claude — for live, trusted answers and actions with zero data copies.\nremove H3 --> move CTAs up\n- One MCP server, hundreds of live sources — [llm] reaches [datasource] and any other system through a single managed connection, no per-source setup\n- Schema-aware from the first prompt — [llm] reads your full [datasource] data model on connect, so answers are accurate on day one\n- Bidirectional and secure by design — [llm] reads and writes live [datasource] data within your own access rules",
+    "hypothesis": "By trimming down the text-heavy block in the hero, highlighting the CTAs, and adding more readily grasped bullet points consistently about the value proposition of Connect AI, the CTR of the CTAs shall rise.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215769451747283?focus=true",
+    "implDate": "2026-06-17",
+    "evalEnd": "2026-07-01",
+    "title": "Value bullets",
+    "evaluation": "Mild negative: value-proposition phrasing underperformed the feature bullets it replaced (15.0% → 13.6%, −9%). Caveat: the pattern's paid volume jumped +80% during this window (~94 → ~169 sessions/day, with daily swings of ±50%), driven by a large non-converting Japanese paid-traffic wave on the salesforce-to-claude page — the pure copy effect is likely smaller than the raw number, though the direction (features > value-prop) matches the surrounding tests.",
+    "suggestions": "Treat feature-focused copy as the control going forward. Spend the next test slot on non-copy levers (visuals, CTA styling, social proof) rather than another abstraction-level copy variant."
+  },
+  {
+    "url": "ai",
+    "original": "H2: Connect your AI assistants and agents to hundreds of enterprise systems in minutes with a managed Model Context Protocol (MCP) platform",
+    "experiment": "roll back to the previous version:\n- remove AI agent icons\n- remove AI agent icons\n- use the AI agent icon headline as H2 between H1 and CTA again:\nConnect your AI assistants and agents to hundreds of enterprise systems in minutes with a managed Model Context Protocol (MCP) platform",
+    "hypothesis": "Before we continue with the AI agent representation approach on this page, we should test if the CTR recovers with the previous version of the page or if the changed traffic (mix) caused the decline in CTR.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215758411311129?focus=true",
+    "implDate": "2026-06-17",
+    "evalEnd": "2026-06-24",
+    "title": "Logo rollback",
+    "evaluation": "Revealing null result: after rolling back to the pre-grid version, the organic trial-intent CTR stayed at ~18% instead of returning to the pre-grid level of 24.5%. The earlier decline was therefore not (only) caused by the logo grid — a shift in the organic traffic mix is the more likely driver. Sample note: a short 7-day window on ~60 organic sessions/day with high day-to-day variation — directionally informative, but thin.",
+    "suggestions": "Before the next /ai/ redesign, segment organic CTR by landing query/referrer to identify the mix shift. Watch the traffic-mix development on this page ahead of any new test."
+  },
+  {
+    "url": "ai",
+    "original": "H2: Connect your AI assistants and agents to hundreds of enterprise systems in minutes with a managed Model Context Protocol (MCP) platform",
+    "experiment": "- reduce them to the 5 most important: Claude (desktop), ChatGPT, Claude Code, Copilot, and Gemini\n- move them below the fold but with a small teaser above\n- add a Trial CTA below each of them (which shall link to the customized sign-up pages soon)\n- link the logos themselves to the listed connectors or to a modal window with a prompt including an onboarding skill (Claude Code)",
+    "hypothesis": "As the CTR completely recovered after the rollback, we continue with the AI agent representation approach on this page.\nBy placing the AI agent logos less prominently, the distraction should be reduced.\nThrough additional Trial CTAs, the purpose of the AI agent logos should be clearer.\nWith additional AI sparkle icons attached to the AI agent logos, the additional functionality should be clearer.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215758411311129?focus=true",
+    "implDate": "2026-06-25",
+    "evalEnd": "2026-07-09",
+    "title": "Refined agent logos",
+    "evaluation": "Positive and sustained: the refined presentation — five key agents below the fold, each with its own trial CTA — lifted the organic trial-intent CTR from 18.0% to 20.7% (+15%) in the evaluation window. The change remains live, and in the six weeks since, the CTR has held at 21.7% (23.8% in the most recent week). The organic base stayed stable throughout (~51–61 sessions/day across baseline, window, and post-period), which strengthens confidence that this is a durable improvement, not a novelty or volume effect.",
+    "suggestions": "Break the agent clicks down per agent (each cc_ai_*_trial event is tracked) and order the five logos by click share. Wire the per-agent CTAs to the planned customized sign-up pages."
+  },
+  {
+    "url": "ai-connect-ds-to-llm",
+    "original": "H2: CData Connect AI lets you plug any business application into any AI tool — like Salesforce into Anthropic Claude — for live, trusted answers and actions with zero data copies.\nH3: Give Salesforce rich semantic context and real-time data from Anthropic Claude so it can answer precisely and take safe, effective actions across your business.",
+    "experiment": "- Spread the feature bullet points evenly across the entire width of the page in three columns.\n- Change the order of the CTAs and make the Product Tour CTA transparent with a black border and black font color",
+    "hypothesis": "Since the features of Connect AI had the best CTR of the CTAs, we continue testing with this kind of information.\nWith a clearer presentation of these three bullet points, the hero is less text-heavy, and the CTAs are more in focus.\nBy changing the order of the CTAs and weakening the Product Tour CTA presentation, the CTR of the Trial CTA should increase.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215769451747283?focus=true",
+    "implDate": "2026-07-07",
+    "evalEnd": "2026-07-21",
+    "title": "Three-column CTAs",
+    "evaluation": "Negative: this test restored the proven feature bullets and spread them across three columns while de-emphasizing the Product Tour CTA — yet the paid trial-intent CTR fell from 13.6% to 11.8% (−14%), and averaged 9.4% in the four weeks after the window with the layout still live (11.4% most recently). Since feature copy on its own had reached 15.0%, the layout and CTA-hierarchy changes plausibly cost around a fifth of the trial-intent CTR. Traffic note: window volumes were comparable (+11%), but the baseline period's traffic was erratic (±50% daily swings while a non-converting Japanese paid wave receded) whereas the window itself was calm — and the joint-query visual (launched one day in) plus the top15 rollout overlap this pattern's numbers.",
+    "suggestions": "Unwind the layout/CTA-hierarchy changes toward the plain feature-bullet version, or re-run the CTA-hierarchy test in a clean window isolated from content changes. Keep layout tests and content/visual tests on non-overlapping schedules or disjoint page subsets."
+  },
+  {
+    "url": "ai-connect-sf-to-claude",
+    "original": "",
+    "experiment": "",
+    "hypothesis": "The CTR of the CTAs on /ai/integrations/[platform]/ is much better.\nWith a more meaningful visual presentation of what Connect AI can do with the Salesforce data source on /ai/connect/salesforce-to-claude, the willingness to start a trial should increase.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1216363767871767?focus=true",
+    "implDate": "2026-07-08",
+    "evalEnd": "2026-08-02",
+    "title": "Joint-query visual",
+    "evaluation": "Winner with a durable effect: the headline paid trial-intent CTR rose from 1.5% to 7.5% (+395%) in the evaluation window. However, the baseline's traffic was extremely erratic (daily paid volumes swinging by multiples during a large non-converting Japanese traffic wave that peaked in the baseline and receded during the evaluation) — excluding that wave, the genuine effect is 7.0% → 12.4% (+77%). The weeks since confirm exactly that level: with the visual still live, a calmer base of ~37 paid sessions/day converts at 12.6%.",
+    "suggestions": "Extend the visual to organic-relevant pages beyond the paid set. Test variants: datasource-specific sample prompts, static vs. lightly animated, and placement above vs. beside the bullets."
+  },
+  {
+    "url": "ai-connect-top15-to-claude",
+    "original": "",
+    "experiment": "Expand the joint-query visualization approach to the next top15 most visited data sources:\nQuickBooks Online\nSQL Server\nGitHub\nShopify\nAthena\nWorkday\nOData\nGoogle BigQuery\nServiceNow\nSAP Business One\nKintone\nPardot\nSAP HANA\nAdobe Analytics\nIntacct",
+    "hypothesis": "The CTR of both CTAs increased by more than 55% for Paid traffic (that is the only relevant traffic for this page) on /ai/connect/salesforce-to-claude/. By adding the joint-query visual to the next 15 most visited data sources, their CTRs will increase by a similar amount.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1216827852803988?focus=true",
+    "implDate": "2026-08-10",
+    "evalEnd": "",
+    "title": "Visuals for Top15",
+    "evaluation": "Early negative-leaning, but statistically fragile: after the first week, the paid trial-intent CTR on the top15 pages runs at 11.0% vs. 13.1% in the weekday-aligned pre-period (−16%). The base is very thin — ~16 paid sessions/day across 15 pages, with single days as low as 2 sessions — so this reading sits within noise range; it contrasts with the clear lift the same visual produced on the salesforce page. Judge after two full weeks at the earliest.",
+    "suggestions": "Let the experiment run to a full 14-day window, then break the effect down per datasource page — a few pages may drive the aggregate. Verify the event instrumentation on all 15 pages matches the salesforce page, and compare the audience mix of these pages' paid traffic."
+  },
+  {
+    "url": "home",
+    "title": "Main Get Started",
+    "original": "main CTA \"Start Free With Email\"",
+    "experiment": "main CTA: \"Get Started Free\"",
+    "hypothesis": "“Get Started Free” is more common and easier to grasp because it’s less confusing than the version with “...With Email.” The more common CTA text should increase the CTR.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217158695066663?focus=true",
+    "implDate": "2026-08-05",
+    "evalEnd": "2026-08-19",
+    "evalUpdateRequested": true,
+    "evaluation": "Strong positive: renaming the main CTA from \"Start Free With Email\" to \"Get Started Free\" lifted the homepage's organic trial-intent CTR from 3.8% to 9.8% (+160%). The organic base ran ~15% below the pre-period (~102 vs. ~120 sessions/day, including a few very thin days), yet absolute clicks more than doubled — and direct traffic moved in the same direction — so the effect is robust to the volume dip. The evaluation window has just closed; the new wording remains live, and the coming weeks will show whether the lift sustains.",
+    "suggestions": "Confirm once the window closes (data settled ~Aug 22), then roll \"Get Started Free\" out to the other /ai/ pages as its own experiment per page type. With the wording optimized, point the next homepage test at CTA prominence and placement."
+  }
+]

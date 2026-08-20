@@ -1,0 +1,153 @@
+﻿'use strict';
+// URL pattern + event definitions for the AI CTR dashboard.
+// Each pattern belongs to a fetch "scope" (one SQL page filter shared by several
+// patterns); the regex decides client-side which rows belong to the pattern.
+
+const LLM_SLUGS = '(agentforce|claude|chatgpt|gemini|langchain|copilot|openai|servicenow|crewai|gumloop|n8n)';
+
+// Scopes = the actual SQL page filters sent to GA4 (via the Connect Engine).
+// Only exact `=` and prefix LIKE push down to the GA4 API — anything fancier
+// (OR, mid-string wildcards) makes the driver scan the whole property and can
+// run for many minutes. The regex trims the broader LIKE down client-side.
+const SCOPES = {
+  home: { where: "[pagePath] = '/'" },
+  // all of /ai/* — serves the exact-/ai/ pattern, every /ai/connect/ pattern,
+  // and the all-Connect-AI aggregate (prefix LIKE pushes down fine)
+  ai: { where: "[pagePath] LIKE '/ai/%'" },
+  // broad prefix (mid-string wildcards don't push down); regexes trim to /mcp/ + /cloud/
+  drivers: { where: "[pagePath] LIKE '/drivers/%'" },
+};
+
+const PATTERNS = [
+  {
+    id: 'home',
+    label: '/ (Homepage)',
+    scope: 'home',
+    regex: '^/(\\?.*)?$',
+    events: ['cc_ai_claude_app', 'cc_ai_chatgpt_app', 'cc_ai_gemini_app', 'cc_ai_copilot_app', 'cc_ai_free_trial'],
+  },
+  {
+    id: 'ai',
+    label: '/ai/',
+    scope: 'ai',
+    regex: '^/ai/(\\?.*)?$',
+    events: ['cc_ai_claude_trial', 'cc_ai_chatgpt_trial', 'cc_ai_gemini_trial', 'cc_ai_copilot_trial', 'cc_ai_openai_trial', 'cc_ai_free_trial'],
+  },
+  {
+    // aggregate across every Connect AI funnel page: all of /ai/* plus the
+    // driver MCP + Cloud pages — one traffic-mix/CTR view of everything that
+    // links to the Connect AI free trial and/or product tour
+    id: 'connect-ai-all',
+    label: 'All Connect AI pages (/ai/* + /drivers/[ds]/mcp|cloud/)',
+    scopes: ['ai', 'drivers'],
+    regex: '^/(ai/.*|drivers/[^/]+/(mcp|cloud)/(\\?.*)?)$',
+    events: [],
+  },
+  {
+    // same aggregate without the /drivers/ pages: everything under /ai/ only
+    id: 'ai-all',
+    label: 'All /ai/* pages (without /drivers/)',
+    scope: 'ai',
+    regex: '^/ai/.*$',
+    events: [],
+  },
+  {
+    id: 'ai-connect-llm',
+    label: '/ai/connect/[LLM]/',
+    scope: 'ai',
+    regex: `^/ai/connect/${LLM_SLUGS}/(\\?.*)?$`,
+    events: ['cc_ai_product_tour', 'cc_ai_free_trial'],
+  },
+  {
+    id: 'ai-connect-datasource',
+    label: '/ai/connect/[datasource]/',
+    scope: 'ai',
+    // All single-segment pages without hyphens, minus the LLM pages.
+    regex: '^/ai/connect/[^/\\-]+/(\\?.*)?$',
+    excludeRegex: `^/ai/connect/${LLM_SLUGS}/(\\?.*)?$`,
+    events: ['cc_ai_product_tour', 'cc_ai_free_trial'],
+  },
+  {
+    id: 'ai-connect-ds-to-llm',
+    label: '/ai/connect/[datasource]-to-[LLM]/',
+    scope: 'ai',
+    regex: '^/ai/connect/[^/]+-to-[^/]+/(\\?.*)?$',
+    events: ['cc_ai_product_tour', 'cc_ai_free_trial'],
+    // Experiment evaluation periods for this (and every) pattern come from
+    // ctr-dashboard/experiments.json — maintained in the Web experiments tab.
+  },
+  {
+    id: 'ai-connect-main',
+    label: '/ai/connect/ (main page)',
+    scope: 'ai',
+    regex: '^/ai/connect/(\\?.*)?$',
+    events: ['cc_ai_main_page'],
+  },
+  {
+    id: 'ai-connect-sf-to-claude',
+    label: '/ai/connect/salesforce-to-claude/',
+    scope: 'ai',
+    regex: '^/ai/connect/salesforce-to-claude/(\\?.*)?$',
+    events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
+  },
+  {
+    id: 'ai-connect-top15-to-claude',
+    label: '/ai/connect/[top15]-to-claude/',
+    scope: 'ai',
+    regex: '^/ai/connect/(qbonline|sql|github|shopify|athena|workday|odata|bigquery|servicenow|sapbusinessone|kintone|pardot|saphana|adobeanalytics|intacct)-to-claude/(\\?.*)?$',
+    events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
+  },
+  {
+    id: 'ai-connect-top16-to-claude',
+    label: '/ai/connect/[top16]-to-claude/ (incl. salesforce)',
+    scope: 'ai',
+    regex: '^/ai/connect/(salesforce|qbonline|sql|github|shopify|athena|workday|odata|bigquery|servicenow|sapbusinessone|kintone|pardot|saphana|adobeanalytics|intacct)-to-claude/(\\?.*)?$',
+    events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
+  },
+  {
+    id: 'drivers-ds-mcp',
+    label: '/drivers/[datasource]/mcp/',
+    scope: 'drivers',
+    regex: '^/drivers/[^/]+/mcp/(\\?.*)?$',
+    events: [],
+  },
+  {
+    id: 'drivers-ds-cloud',
+    label: '/drivers/[datasource]/cloud/',
+    scope: 'drivers',
+    regex: '^/drivers/[^/]+/cloud/(\\?.*)?$',
+    events: [],
+  },
+];
+
+// Tracked for every pattern and shown separately, but NOT part of the CTR
+// calculation (CTR = the pattern's stated events / engaged sessions).
+const EXTRA_EVENTS = ['all_button_clicks'];
+for (const p of PATTERNS) p.extraEvents = EXTRA_EVENTS;
+
+// A pattern may aggregate from several scopes (`scopes: [...]`); normalize.
+for (const p of PATTERNS) p.scopes = p.scopes || [p.scope];
+
+// Union of events per scope — one events query per scope covers all its patterns.
+for (const scope of Object.values(SCOPES)) scope.events = [];
+for (const p of PATTERNS) {
+  for (const sc of p.scopes) {
+    if (!SCOPES[sc]) continue;
+    for (const ev of [...p.events, ...p.extraEvents]) {
+      if (!SCOPES[sc].events.includes(ev)) SCOPES[sc].events.push(ev);
+    }
+  }
+}
+
+// sessionDefaultChannelGroup → traffic bucket (same mapping as the weekly-ctr analysis)
+const PAID = new Set(['Paid Search', 'Paid Social', 'Display', 'Paid Other', 'Paid Shopping', 'Paid Video']);
+const ORGANIC = new Set(['Organic Search', 'Organic Social', 'Organic Video', 'Organic Shopping']);
+
+function channelBucket(group) {
+  if (group === 'Direct') return 'direct';
+  if (PAID.has(group)) return 'paid';
+  if (ORGANIC.has(group)) return 'organic';
+  return 'other';
+}
+
+module.exports = { PATTERNS, SCOPES, channelBucket };

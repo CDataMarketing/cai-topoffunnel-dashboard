@@ -359,11 +359,11 @@ function metricRows(pattern, days) {
   // it and expands via the ⊞ agents toggle.
   if (trialSet.length) {
     const combined = agentEvents.length > 0;
-    const label = combined ? 'cc_ai_free_trial + ai_agent_clicks' : 'cc_ai_free_trial';
+    const label = combined ? 'free trial clicks' : 'cc_ai_free_trial';
     const agKey = 'agents:' + pattern.id;
     const agOpen = expandedAgentGroups.has(agKey);
     const agToggle = combined
-      ? ` <button class="agentToggle" data-key="${agKey}" title="${agOpen ? 'Hide' : 'Show'} the breakdown into the individual trial-intent CTAs">${agOpen ? '⊟ individual CTAs' : '⊞ individual CTAs'}</button>`
+      ? ` <button class="agentToggle" data-key="${agKey}" title="${agOpen ? 'Hide' : 'Show'} the breakdown into the individual trial-intent CTAs (cc_ai_free_trial + the AI-agent clicks)">${agOpen ? '⊟ CTAs' : '⊞ CTAs'}</button>`
       : '';
     eventBlock(label, trialSet, 'evt', agToggle);
     if (combined && agOpen) {
@@ -1135,6 +1135,7 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   // experiment bands + baselines (annotation layer under the data marks)
   const lanes = [];
   const evalBlocks = [];
+  const bandTitles = [];
   for (const ex of (opts.showBands === false ? [] : exps)) {
     const bs = evalStart(ex.implDate);
     const be = ex.evalEnd || PAYLOAD.snapshot.endDate;
@@ -1170,10 +1171,14 @@ function timelineChart(pattern, exps, dates, opts = {}) {
       `<line x1="${bx0}" y1="${CY0}" x2="${bx0}" y2="${CY1}" stroke="#ccb700" stroke-width="1"/>` +
       `<line x1="${bx1}" y1="${CY0}" x2="${bx1}" y2="${CY1}" stroke="#ccb700" stroke-width="1" stroke-dasharray="2 2"/>` +
       (base.ctr !== null && base.ctr <= dom
-        ? `<line x1="${bx0}" y1="${y(base.ctr)}" x2="${bx1}" y2="${y(base.ctr)}" stroke="#5e5d60" stroke-width="1.4" stroke-dasharray="5 4"/>` : '') +
+        ? `<line x1="${bx0}" y1="${y(base.ctr)}" x2="${bx1}" y2="${y(base.ctr)}" stroke="#5e5d60" stroke-width="1.4" stroke-dasharray="5 4"/>` : '') + '</g>';
+    // title texts are emitted LAST (after the per-day hover rects) so real
+    // mouse clicks reach them — anything drawn earlier sits below the
+    // transparent hover layer in SVG hit-testing
+    bandTitles.push(`<g><title>Open “${esc(ex.title)}” on the Website Experiments tab</title>` +
       (bx0 + 4 + ex.title.length * 5.6 > X1
         ? `<text x="${X1 - 4}" y="${CY0 + 11 + lane * 13}" text-anchor="end" font-size="${fsTitle}" font-weight="600" fill="#5e5d60" class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(ex)}">${esc(ex.title)}</text>`
-        : `<text x="${bx0 + 4}" y="${CY0 + 11 + lane * 13}" font-size="${fsTitle}" font-weight="600" fill="#5e5d60" class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(ex)}">${esc(ex.title)}</text>`) + '</g>';
+        : `<text x="${bx0 + 4}" y="${CY0 + 11 + lane * 13}" font-size="${fsTitle}" font-weight="600" fill="#5e5d60" class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(ex)}">${esc(ex.title)}</text>`) + '</g>');
   }
 
   // volume mini-pane (slightly wider bars in the compact chart)
@@ -1210,6 +1215,7 @@ function timelineChart(pattern, exps, dates, opts = {}) {
     const t = `${d}\nCTR: ${daily[i] === null ? '–' : daily[i].toFixed(1) + '%'} · 7-day: ${roll[i] === null ? '–' : roll[i].toFixed(1) + '%'}\n${fmtInt(sess[i])} engaged sessions (${bucketLabel.toLowerCase()})`;
     s += `<rect x="${x(i) - colW / 2}" y="${CY0}" width="${colW}" height="${VY1 - CY0}" fill="transparent"><title>${esc(t)}</title></rect>`;
   });
+  s += bandTitles.join('');
 
   s += '</svg>';
   // one positioned row ("lane") per set of non-overlapping experiments,

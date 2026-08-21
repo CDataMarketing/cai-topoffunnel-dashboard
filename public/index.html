@@ -4,33 +4,41 @@
 <meta charset="utf-8">
 <title>Connect AI CTR Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&family=DM+Mono:wght@400;500&display=swap">
 <style>
   :root {
-    --border: #d9dde3;
-    --border-strong: #aab2bd;
-    --head-bg: #f4f6f8;
-    --week-bg: #e9edf2;
-    --label-bg: #fbfcfd;
-    --sess-bg: #ffffff;
-    --evt-bg: #fbfaf4;
-    --extra-bg: #f6f2fa;
-    --ctr-bg: #f3f7ef;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --accent: #0b5fff;
+    /* CData brand kit (Feb 2026): Depth/Clarity/Agility/Resolve/Balance + grayscale */
+    --surface: #f9f9f7;      /* kept for a seamless blend with the portal view */
+    --border: #d9d6d2;       /* Gray 3 */
+    --border-strong: #b5b9bc;/* Balance */
+    --head-bg: #fff38c;      /* Agility 45% tint — column headers */
+    --week-bg: #ffe500;      /* Agility — top header tier */
+    --label-bg: #fffdfa;     /* Gray 1 */
+    --sess-bg: #fffdfa;      /* Gray 1 */
+    --evt-bg: #f1eee9;       /* Clarity */
+    --extra-bg: #edeeef;     /* Balance 25% tint */
+    --ctr-bg: #fffacc;       /* Agility 20% tint */
+    --text: #15151c;         /* Depth */
+    --muted: #5e5d60;        /* Gray 8 */
+    --faint: #777577;        /* Gray 7 */
+    --accent: #002660;       /* Resolve */
+    --critical: #d03b3b;     /* off-palette by design: destructive-action affordance */
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 12.5px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: #eef1f5; }
-  .page { max-width: 1500px; margin: 0 auto; background: #fff; min-height: 100vh; box-shadow: 0 0 24px rgba(30, 41, 59, .08); }
+  body { margin: 0; font: 11.5px/1.4 "DM Sans", Arial, -apple-system, "Segoe UI", sans-serif; color: var(--text); background: #f9f9f7; }
+  code { font-family: "DM Mono", "Courier New", monospace; }
+  .page { max-width: 1500px; margin: 0 auto; background: var(--surface); min-height: 100vh; }
   header { padding: 14px 20px 10px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center;
-           position: sticky; top: 0; z-index: 60; background: #fff; }
-  #patternBar { position: sticky; top: var(--headerH, 48px); z-index: 55; padding: 7px 20px; border-bottom: 1px solid var(--border); background: var(--label-bg); }
-  #patternBar select { font: inherit; padding: 4px 8px; border: 1px solid var(--border-strong); border-radius: 6px; background: #fff; min-width: 320px; }
-  h1 { font-size: 15px; margin: 0; font-weight: 650; }
-  h2 { font-size: 13.5px; margin: 22px 20px 8px; font-weight: 650; }
+           position: sticky; top: 0; z-index: 60; background: var(--surface); }
+  #patternBar, #tlBar { position: sticky; top: var(--headerH, 48px); z-index: 55; padding: 7px 20px; border-bottom: 1px solid var(--border); background: var(--label-bg); }
+  #patternBar select, #tlBar select { font: inherit; padding: 4px 8px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); min-width: 320px; }
+  h1 { font-size: 14px; margin: 0; font-weight: 650; }
+  h2 { font-size: 12.5px; margin: 22px 20px 8px; font-weight: 650; }
   #topTabs { display: flex; gap: 2px; }
-  #topTabs button { border: 1px solid var(--border-strong); border-radius: 7px 7px 0 0; border-bottom: none; background: var(--head-bg); padding: 6px 16px; font-size: 13px; color: var(--muted); cursor: pointer; }
-  #topTabs button.active { background: #fff; color: var(--text); font-weight: 650; border-bottom: 2px solid #fff; margin-bottom: -2px; }
+  #topTabs button { border: 1px solid var(--border-strong); border-radius: 7px 7px 0 0; border-bottom: none; background: #f1eee9; padding: 6px 16px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  #topTabs button.active { background: var(--surface); color: var(--text); font-weight: 650; border-bottom: 2px solid var(--surface); margin-bottom: -2px; }
   #expWrap.tableWrap { overflow: visible; } /* page scrolls; column headers stick below the app header */
   #expWrap table { width: 100%; table-layout: fixed; }
   #expWrap th, #expWrap td { text-align: left; white-space: pre-line; vertical-align: top; overflow-wrap: break-word; }
@@ -43,35 +51,38 @@
   .imgWrap { position: relative; margin-bottom: 5px; }
   .cellImg { display: block; max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
   .imgDel { position: absolute; top: 3px; right: 3px; border: none; border-radius: 3px; background: rgba(255,255,255,.85); font-size: 10px; padding: 1px 5px; cursor: pointer; color: var(--muted); }
-  .imgDel:hover { color: #c0392b; }
+  .imgDel:hover { color: var(--critical); }
   .imgAdd { display: block; margin-top: 4px; border: 1px dashed var(--border-strong); border-radius: 5px; background: none; font-size: 10px; padding: 1px 7px; color: var(--muted); cursor: pointer; }
   .imgAdd:hover { color: var(--accent); border-color: var(--accent); }
-  .updBtn { display: block; margin-top: 4px; border: 1px solid var(--border-strong); border-radius: 5px; background: #fff; font-size: 10px; padding: 1px 7px; color: var(--muted); cursor: pointer; }
+  .updBtn { display: block; margin-top: 4px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--surface); font-size: 10px; padding: 1px 7px; color: var(--muted); cursor: pointer; }
   .updBtn:hover { color: var(--accent); border-color: var(--accent); }
-  .updPending { font-size: 10px; font-style: italic; color: #a05a00; background: #fdf3e3; border-radius: 4px; padding: 2px 6px; margin-bottom: 4px; }
+  .updPending { font-size: 10px; font-style: italic; color: var(--text); background: #fff38c; border-radius: 4px; padding: 2px 6px; margin-bottom: 4px; }
   #expWrap .titleCell:hover { outline: 1px dashed var(--border-strong); outline-offset: 2px; }
   #expWrap tbody tr:nth-child(even) td { background: var(--label-bg); }
   #expWrap .cellText { display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
   #expWrap tr.expanded .cellText { -webkit-line-clamp: unset; }
   #expWrap tr.newRow td { cursor: pointer; height: 26px; color: var(--muted); font-style: italic; }
   #expWrap tr.newRow:hover td { background: var(--head-bg); }
-  #expWrap input, #expWrap select, #expWrap textarea { font: inherit; font-size: 11px; padding: 3px 5px; border: 1px solid var(--border-strong); border-radius: 5px; width: 100%; box-sizing: border-box; }
+  #expWrap input, #expWrap select, #expWrap textarea { font: inherit; font-size: 10px; padding: 3px 5px; border: 1px solid var(--border-strong); border-radius: 5px; width: 100%; box-sizing: border-box; }
   #expWrap textarea { min-height: 80px; resize: vertical; }
-  #expWrap thead th { background: var(--head-bg); font-weight: 650; }
+  #expWrap thead th { background: var(--week-bg); font-weight: 650; }
   #expWrap .delX { border: none; background: none; color: var(--muted); cursor: pointer; }
-  #expWrap .delX:hover { color: #c0392b; }
-  .meta { color: var(--muted); font-size: 12.5px; }
-  .meta code, #eventsLine code { background: var(--head-bg); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
-  button { font: inherit; padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: #fff; cursor: pointer; }
+  #expWrap .delX:hover { color: var(--critical); }
+  .meta { color: var(--muted); font-size: 11.5px; }
+  .meta code, #eventsLine code { background: #f1eee9; padding: 1px 5px; border-radius: 4px; font-size: 10.5px; }
+  button { font: inherit; padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); cursor: pointer; }
   button:hover { border-color: var(--accent); color: var(--accent); }
   button:disabled { opacity: .55; cursor: default; }
-  #eventsLine { padding: 8px 20px; color: var(--muted); font-size: 12.5px; border-bottom: 1px solid var(--border); }
+  #eventsDefs { border-bottom: 1px solid var(--border); }
+  #eventsDefs > summary { padding: 8px 20px; font-size: 11.5px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; list-style-position: inside; margin: 0; }
+  #eventsDefs > summary:hover { color: var(--text); }
+  #eventsLine { padding: 0 20px 10px; color: var(--muted); font-size: 11.5px; }
   .tableWrap { overflow: auto; max-height: 72vh; margin: 0 0 8px; }
   table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
-  th, td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 2px 5px; text-align: right; white-space: nowrap; font-size: 11px; }
+  th, td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 2px 5px; text-align: right; white-space: nowrap; font-size: 10px; }
   thead th { position: sticky; background: var(--head-bg); z-index: 3; }
   thead tr.weeks th { top: 0; text-align: center; background: var(--week-bg); font-weight: 650; border-bottom: 1px solid var(--border-strong); }
-  thead tr.days th { top: 20px; font-weight: 550; color: var(--muted); }
+  thead tr.days th { top: 20px; font-weight: 550; color: var(--text); }
   thead tr.days:first-child th { top: 0; }
   tbody th { position: sticky; left: 0; background: var(--label-bg); text-align: left; font-weight: 550; z-index: 2; border-right: 1px solid var(--border-strong); min-width: 210px; }
   tbody th small { color: var(--muted); font-weight: 450; }
@@ -79,49 +90,65 @@
   /* box-shadow instead of border: takes no layout space, so fixed-grid tables stay pixel-aligned */
   td.weekstart, th.weekstart { box-shadow: inset 2px 0 0 var(--border-strong); }
   /* weekend + running-experiment tints as overlays, so row backgrounds shine through */
-  td.wknd, th.wknd { box-shadow: inset 0 0 0 999px rgba(30, 41, 59, .045); }
-  td.live, th.live { box-shadow: inset 0 0 0 999px rgba(11, 95, 255, .07); }
-  td.wknd.live, th.wknd.live { box-shadow: inset 0 0 0 999px rgba(11, 95, 255, .07), inset 0 0 0 999px rgba(30, 41, 59, .045); }
-  td.weekstart.live, th.weekstart.live { box-shadow: inset 2px 0 0 var(--border-strong), inset 0 0 0 999px rgba(11, 95, 255, .07); }
-  .liveHint { background: rgba(11, 95, 255, .07); padding: 1px 6px; border-radius: 4px; }
+  td.wknd, th.wknd { box-shadow: inset 0 0 0 999px rgba(21, 21, 28, .05); }
+  td.live, th.live { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .22); }
+  td.wknd.live, th.wknd.live { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .22), inset 0 0 0 999px rgba(21, 21, 28, .05); }
+  td.weekstart.live, th.weekstart.live { box-shadow: inset 2px 0 0 var(--border-strong), inset 0 0 0 999px rgba(255, 229, 0, .22); }
+  .liveHint { background: rgba(255, 229, 0, .22); padding: 1px 6px; border-radius: 4px; }
   .grpToggle { border: none; background: none; cursor: pointer; font-size: 9px; padding: 0 4px 0 0; color: var(--muted); }
   .grpToggle:hover { color: var(--accent); }
-  .agentToggle { border: 1px solid var(--border-strong); border-radius: 4px; background: #fff; cursor: pointer; font-size: 9px; padding: 0 5px; margin-left: 6px; color: var(--muted); }
+  .agentToggle { border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface); cursor: pointer; font-size: 9px; padding: 0 5px; margin-left: 6px; color: var(--muted); }
   .agentToggle:hover { color: var(--accent); border-color: var(--accent); }
   tr.subEvt th { padding-left: 26px; }
   tr.sess td { background: var(--sess-bg); }
   tr.evt td { background: var(--evt-bg); }
   tr.extra td { background: var(--extra-bg); }
   tr.ctr td { background: var(--ctr-bg); font-weight: 600; }
-  tr.evctr td, tr.evctr th { font-size: 10px; font-style: italic; color: var(--muted); padding-top: 0; padding-bottom: 2px; }
+  tr.evctr td, tr.evctr th { font-size: 9.5px; font-style: italic; color: var(--muted); padding-top: 0; padding-bottom: 2px; }
   tr.evctr td { background: var(--evt-bg); }
   tr.evctr.extra td { background: var(--extra-bg); }
-  td.out { background: #f6f7f9; }
-  th.out { color: #c2c8d0; }
+  td.out { background: #f1eee9; }
+  /* blank cells in the aligned experiment-periods table: keep the grid width
+     for scroll alignment with the daily table, but show nothing */
+  .rangeCard th.gap, .rangeCard td.gap { background: var(--surface); border-right: none; border-bottom: none; box-shadow: none; }
+  th.out { color: #c0bebb; }
   td.span { text-align: center; font-weight: 650; }
   tr.blockend td, tr.blockend th { border-bottom: 2px solid var(--border-strong); }
-  td.zero { color: #c2c8d0; }
+  td.zero { color: #c0bebb; }
   #empty { padding: 40px; color: var(--muted); }
   /* experiment timeline tab */
   #tlCharts { padding: 10px 20px 50px; }
-  .tlIntro { color: var(--muted); font-size: 12.5px; max-width: 860px; }
+  .tlIntro { color: var(--muted); font-size: 11.5px; max-width: 860px; }
   .tlChart { margin: 26px 0 6px; }
-  .tlChart h3 { font-size: 15px; margin: 0 0 2px; }
+  .tlChart h3 { font-size: 13.5px; margin: 0 0 2px; }
   .tlChart .meta { display: block; margin-bottom: 8px; }
   .tlChart svg { width: 100%; height: auto; display: block; }
   .tlEvalLane { position: relative; margin-top: 6px; }
-  .tlEvalBlock { position: absolute; top: 0; box-sizing: border-box; font-size: 11px; line-height: 1.35; padding: 5px 8px;
-                 background: var(--label-bg); border: 1px solid var(--border); border-left: 3px solid rgba(11, 95, 255, .45);
+  .tlEvalBlock { position: absolute; top: 0; box-sizing: border-box; font-size: 10px; line-height: 1.35; padding: 5px 8px;
+                 background: var(--label-bg); border: 1px solid var(--border); border-left: 3px solid #ffe500;
                  border-radius: 0 6px 6px 0; cursor: help; overflow-wrap: break-word;
                  min-width: min(230px, 100%); max-width: 100%; }
   .tlEvalBlock .evalTxt { color: var(--muted); }
-  details > summary { font-size: 15px; font-weight: 650; margin: 18px 20px 8px; cursor: pointer; list-style-position: inside; user-select: none; }
+  .patLink { color: inherit; text-decoration: none; }
+  .patLink:hover { color: var(--accent); text-decoration: underline; }
+  /* experiment titles in the timeline charts link to their Website Experiments row */
+  #tlCharts text.expLink { cursor: pointer; fill: var(--accent); }
+  #tlCharts text.expLink:hover { text-decoration: underline; }
+  #expWrap tr.flash td { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .35); transition: box-shadow .4s; }
+  /* weekly summary: centered values (row labels and the corner stay left-aligned) */
+  #weeklyWrap td, #weeklyWrap thead th { text-align: center; }
+  #weeklyWrap thead th.corner, #weeklyWrap tbody th { text-align: left; }
+  #ctrChart { padding: 0 20px; }
+  #ctrChart .tlChart { margin: 12px 0 2px; }
+  #ctrChart .tlChart h3 { font-size: 10.5px; margin: 0 0 1px; }
+  #ctrChart .tlChart .meta { font-size: 10.5px; margin-bottom: 4px; }
+  details > summary { font-size: 13.5px; font-weight: 650; margin: 18px 20px 8px; cursor: pointer; list-style-position: inside; user-select: none; }
   /* full-width, no side border/margin — keeps its columns pixel-aligned with the daily table */
   .rangeCard { margin: 14px 0; border-top: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong); overflow: hidden; }
   .rangeCard .rangeHead { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; background: var(--head-bg); border-bottom: 1px solid var(--border); }
-  .rangeCard .rangeHead strong { font-size: 14px; }
+  .rangeCard .rangeHead strong { font-size: 12.5px; }
   .rangeCard .closeX { border: none; background: none; font-size: 17px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 6px; }
-  .rangeCard .closeX:hover { color: #c0392b; }
+  .rangeCard .closeX:hover { color: var(--critical); }
   .rangeCard .tableWrap { max-height: 60vh; margin: 0; }
   #rangeControls { padding: 12px 20px 36px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   #rangeControls input[type="date"] { font: inherit; padding: 4px 7px; border: 1px solid var(--border-strong); border-radius: 6px; }
@@ -132,9 +159,9 @@
 <header>
   <h1>Marketing Cockpit</h1>
   <nav id="topTabs">
-    <button data-view="tl" class="active">Experiment timeline</button>
-    <button data-view="exp">Web experiments</button>
+    <button data-view="tl" class="active">Experiment Timeline</button>
     <button data-view="ctr">CAI Traffic &amp; CTR</button>
+    <button data-view="exp">Website Experiments</button>
   </nav>
   <span class="meta" id="rangeMeta"></span>
   <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
@@ -145,8 +172,17 @@
   <label>URL pattern:
     <select id="patternSelect"></select>
   </label>
+  <label style="margin-left:18px">Traffic:
+    <select id="ctrBucketSel" style="min-width:140px">
+      <option value="organic">Organic</option>
+      <option value="all">All</option>
+      <option value="paid">Paid</option>
+      <option value="direct">Direct</option>
+    </select>
+  </label>
 </div>
-<div id="eventsLine"></div>
+<details id="eventsDefs"><summary>Data definitions</summary><div id="eventsLine"></div></details>
+<div id="ctrChart"></div>
 <details open>
   <summary>Daily</summary>
   <div class="tableWrap" id="dailyWrap"></div>
@@ -172,6 +208,11 @@
 </div>
 
 <div id="tlView">
+  <div id="tlBar">
+    <label>URL pattern:
+      <select id="tlFilter"></select>
+    </label>
+  </div>
   <div id="tlCharts"></div>
 </div>
 </div>
@@ -322,7 +363,7 @@ function metricRows(pattern, days) {
     const agKey = 'agents:' + pattern.id;
     const agOpen = expandedAgentGroups.has(agKey);
     const agToggle = combined
-      ? ` <button class="agentToggle" data-key="${agKey}" title="${agOpen ? 'Hide' : 'Show'} the AI-agent click breakdown">${agOpen ? '⊟ agents' : '⊞ agents'}</button>`
+      ? ` <button class="agentToggle" data-key="${agKey}" title="${agOpen ? 'Hide' : 'Show'} the breakdown into the individual trial-intent CTAs">${agOpen ? '⊟ individual CTAs' : '⊞ individual CTAs'}</button>`
       : '';
     eventBlock(label, trialSet, 'evt', agToggle);
     if (combined && agOpen) {
@@ -385,7 +426,7 @@ function buildRangeTable(pattern, days, weeks, ranges, headerMode = 'weeks') {
     if (!dates.length) continue;
     const startIdx = allDates.indexOf(dates[0]);
     if (startIdx > cursor) segs.push({ gap: startIdx - cursor });
-    segs.push({ dates });
+    segs.push({ dates, title: r.title || '' });
     cursor = startIdx + dates.length;
   }
   if (cursor < allDates.length) segs.push({ gap: allDates.length - cursor });
@@ -394,8 +435,9 @@ function buildRangeTable(pattern, days, weeks, ranges, headerMode = 'weeks') {
   // top header: calendar weeks, or one merged cell per period
   const topHeader = headerMode === 'ranges'
     ? segs.map((seg) => seg.gap
-        ? `<th colspan="${seg.gap}" class="out"></th>`
-        : `<th colspan="${seg.dates.length}" class="weekstart">${seg.dates[0]} → ${seg.dates[seg.dates.length - 1]}</th>`
+        ? `<th colspan="${seg.gap}" class="gap"></th>`
+        : `<th colspan="${seg.dates.length}" class="weekstart">${seg.title ? esc(seg.title) + ' · ' : ''}` +
+          `${fmtShort(seg.dates[0])}–${fmtShort(seg.dates[seg.dates.length - 1])}${seg.dates[seg.dates.length - 1].slice(0, 4)}</th>`
       ).join('')
     : weeks.map((w) => `<th colspan="${w.dates.length}" class="weekstart">${weekLabel(w)}</th>`).join('');
   let html = `<table style="${gridStyle(allDates.length)}">${colgroup(allDates.length)}<thead>` +
@@ -403,7 +445,9 @@ function buildRangeTable(pattern, days, weeks, ranges, headerMode = 'weeks') {
     '</tr><tr class="days"><th class="corner">Metric</th>';
   for (const w of weeks) {
     w.dates.forEach((d, i) => {
-      html += `<th class="${i === 0 ? 'weekstart' : ''}${isWeekend(d) ? ' wknd' : ''}${inAny(d) ? '' : ' out'}">${fmtDay(d)}</th>`;
+      html += inAny(d) || headerMode !== 'ranges'
+        ? `<th class="${i === 0 ? 'weekstart' : ''}${isWeekend(d) ? ' wknd' : ''}${inAny(d) ? '' : ' out'}">${fmtDay(d)}</th>`
+        : '<th class="gap"></th>';
     });
   }
   html += '</tr></thead><tbody>';
@@ -412,7 +456,7 @@ function buildRangeTable(pattern, days, weeks, ranges, headerMode = 'weeks') {
     html += `<tr class="${r.cls}${r.blockend ? ' blockend' : ''}"><th>${r.label}</th>`;
     for (const seg of segs) {
       if (seg.gap) {
-        html += `<td class="out" colspan="${seg.gap}"></td>`;
+        html += `<td class="${headerMode === 'ranges' ? 'gap' : 'out'}" colspan="${seg.gap}"></td>`;
       } else {
         const v = r.fn(seg.dates);
         html += `<td class="span${v === '0' || v === '-' ? ' zero' : ''}" colspan="${seg.dates.length}" ` +
@@ -438,13 +482,21 @@ function render() {
     `${snapshot.startDate} → ${snapshot.endDate} · updated ${new Date(snapshot.generatedAt).toLocaleString()}`;
   const ctrEvents = ctrEventsOf(days);
   $('eventsLine').innerHTML =
-    `CTR events (auto-discovered cc_ai_*): ${ctrEvents.length ? ctrEvents.map((e) => `<code>${e}</code>`).join(' + ') : '<em>none found yet</em>'}` +
+    `Tracked click events (auto-discovered cc_ai_*): ${ctrEvents.length ? ctrEvents.map((e) => `<code>${e}</code>`).join(' + ') : '<em>none tracked on these pages — CTRs fall back to</em> <code>all_button_clicks</code>'}` +
+    (ctrEvents.length ? ' &nbsp;·&nbsp; trial-intent CTR counts only <code>cc_ai_free_trial</code> + AI-agent clicks (not <code>cc_ai_product_tour</code>)' : '') +
     ` &nbsp;·&nbsp; also tracked: <code>all_button_clicks</code>` +
     ` &nbsp;·&nbsp; Pattern: <code>${pattern.regex}</code>` +
     (pattern.excludeRegex ? ` minus <code>${pattern.excludeRegex}</code>` : '') +
+    (pattern.example ? ` &nbsp;·&nbsp; <a class="patLink" href="${pattern.example}" target="_blank">example page ↗</a>` : '') +
     ' &nbsp;·&nbsp; Sessions exclude Direct traffic from China & Singapore' +
     ((PAYLOAD.experiments || []).some((x) => x.url === pattern.id && x.implDate && !x.evalEnd)
       ? ' &nbsp;·&nbsp; <span class="liveHint">blue-tinted days = running experiment window</span>' : '');
+
+  // CTR development chart above the tables (same chart as the timeline tab,
+  // without evaluation blocks; traffic type from the dropdown)
+  const chartExps = (PAYLOAD.experiments || []).filter((x) => x.url === pattern.id && x.implDate)
+    .sort((a, b) => a.implDate.localeCompare(b.implDate));
+  $('ctrChart').innerHTML = timelineChart(pattern, chartExps, dates, { bucket: ctrBucket, showEvals: false, showBands: false, compact: true });
 
   // group consecutive dates into Mon–Sun weeks
   const weeks = [];
@@ -488,11 +540,14 @@ function renderRangeTables(pattern, days, weeks) {
   // Shown side by side AND positioned under their dates in the daily grid;
   // non-overlapping ranges share one aligned table ("lane"), overlaps open
   // further lanes below.
+  // aligned layout: experiment periods sit under the same date columns as the
+  // daily table (scroll-synced); stretches without experiments render as
+  // blank cells — visible blocks only where an experiment ran
   const expRanges = (PAYLOAD.experiments || [])
     .filter((x) => x.url === pattern.id && x.implDate)
-    .map((x) => ({ start: evalStart(x.implDate), end: x.evalEnd || snapEnd }));
+    .map((x) => ({ start: evalStart(x.implDate), end: x.evalEnd || snapEnd, title: x.title || '' }));
   const seen = new Set();
-  const presets = [...(pattern.presetRanges || []).map((r) => ({ start: r.start, end: r.end || snapEnd })), ...expRanges]
+  const presets = [...(pattern.presetRanges || []).map((r) => ({ start: r.start, end: r.end || snapEnd, title: '' })), ...expRanges]
     .filter((r) => { const k = r.start + '|' + r.end; if (seen.has(k)) return false; seen.add(k); return true; })
     .sort((a, b) => (a.start < b.start ? -1 : 1));
   const lanes = [];
@@ -505,8 +560,7 @@ function renderRangeTables(pattern, days, weeks) {
     const card = document.createElement('section');
     card.className = 'rangeCard aligned';
     card.innerHTML =
-      `<div class="rangeHead"><strong>Experiment evaluation periods${lanes.length > 1 ? ` (${i + 1}/${lanes.length})` : ''}: ` +
-      `${lane.map((r) => `${r.start} → ${r.end}`).join(' · ')}</strong></div>` +
+      `<div class="rangeHead"><strong>Experiment evaluation periods${lanes.length > 1 ? ` (${i + 1}/${lanes.length})` : ''}</strong></div>` +
       `<div class="tableWrap">${buildRangeTable(pattern, days, weeks, lane, 'ranges')}</div>`;
     wrap.appendChild(card);
   });
@@ -525,18 +579,31 @@ function renderRangeTables(pattern, days, weeks) {
     wrap.appendChild(card);
   });
 
-  // keep every aligned range card horizontally in lockstep with the daily table,
-  // so each aggregate stays under the same date columns it was computed from
-  const panes = [$('dailyWrap'), ...wrap.querySelectorAll('.rangeCard.aligned .tableWrap')];
-  let syncing = false;
-  for (const pane of panes) {
-    pane.addEventListener('scroll', () => {
-      if (syncing) return;
-      syncing = true;
-      for (const other of panes) if (other !== pane) other.scrollLeft = pane.scrollLeft;
-      requestAnimationFrame(() => { syncing = false; });
-    });
+  // keep the daily table, the weekly summary, and every aligned range card
+  // horizontally in lockstep: proportional sync, so the weekly table (different
+  // column widths) tracks the same time position as the day-grid panes
+  for (const pane of [$('dailyWrap'), $('weeklyWrap'), ...wrap.querySelectorAll('.rangeCard.aligned .tableWrap')]) {
+    bindScrollSync(pane);
   }
+}
+
+let scrollSyncing = false;
+function bindScrollSync(pane) {
+  if (pane._syncBound) return;
+  pane._syncBound = true;
+  pane.addEventListener('scroll', () => {
+    if (scrollSyncing) return;
+    scrollSyncing = true;
+    const panes = [$('dailyWrap'), $('weeklyWrap'), ...$('rangeTables').querySelectorAll('.rangeCard.aligned .tableWrap')];
+    const max = pane.scrollWidth - pane.clientWidth;
+    const frac = max > 0 ? pane.scrollLeft / max : 0;
+    for (const other of panes) {
+      if (other === pane) continue;
+      const omax = other.scrollWidth - other.clientWidth;
+      if (omax > 0) other.scrollLeft = frac * omax;
+    }
+    requestAnimationFrame(() => { scrollSyncing = false; });
+  });
 }
 
 $('addRangeBtn').addEventListener('click', () => {
@@ -564,6 +631,28 @@ $('rangeApply').addEventListener('click', () => {
   render();
 });
 
+// experiment titles in the timeline charts jump to the experiment's row on
+// the Website Experiments tab (clearing an active URL filter if it would
+// hide the row), with a short highlight
+$('tlCharts').addEventListener('click', (e) => {
+  const t = e.target.closest('text.expLink');
+  if (!t) return;
+  const idx = Number(t.dataset.exp);
+  const exp = (PAYLOAD.experiments || [])[idx];
+  if (!exp) return;
+  if (expUrlFilter && expUrlFilter !== exp.url) {
+    expUrlFilter = '';
+    renderExperiments();
+  }
+  document.querySelector('#topTabs button[data-view="exp"]').click();
+  const cell = document.querySelector(`#expWrap .titleCell[data-i="${idx}"]`);
+  if (!cell) return;
+  const row = cell.closest('tr');
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.add('flash');
+  setTimeout(() => row.classList.remove('flash'), 2200);
+});
+
 // ---- top-level views: AI CTR Dashboard / Web experiments -------------------
 for (const btn of document.querySelectorAll('#topTabs button')) {
   btn.addEventListener('click', () => {
@@ -572,19 +661,28 @@ for (const btn of document.querySelectorAll('#topTabs button')) {
     $('expView').hidden = btn.dataset.view !== 'exp';
     $('tlView').hidden = btn.dataset.view !== 'tl';
     if (btn.dataset.view === 'tl') sizeTimelineLanes();
+    if (btn.dataset.view === 'ctr') {
+      // per spec: the CAI tab always opens on the all-Connect-AI aggregate, organic traffic
+      currentPatternId = 'connect-ai-all';
+      ctrBucket = 'organic';
+      $('ctrBucketSel').value = 'organic';
+      render();
+    }
   });
 }
 
 // ---- web experiments --------------------------------------------------------
 const CTR_TREND_HELP = `What this column tells you:
 
-It shows how the trial-intent CTR developed under the experiment, compared against a fair "before" value. Counted as trial-intent clicks: cc_ai_free_trial plus every AI-agent click event on the page (e.g. cc_ai_claude_trial, cc_ai_chatgpt_app — the same set as the all_ai_agent_clicks row), since both contribute to the goal of starting trials. Divided by engaged sessions of the chosen traffic type.
+It shows how the trial-intent CTR developed under the experiment, compared against a fair "before" value. Counted as trial-intent clicks: cc_ai_free_trial plus every AI-agent click event on the page (e.g. cc_ai_claude_trial, cc_ai_chatgpt_app — the same set as the all_ai_agent_clicks row), since both contribute to the goal of starting trials. Not counted: cc_ai_product_tour — starting the product tour is not trial intent. Divided by engaged sessions of the chosen traffic type.
 
 Why organic traffic by default? Organic visitors arrive on their own, so their clicking behavior reflects the page itself. Paid traffic changes whenever campaigns, budgets or targeting change — a CTR shift there could be caused by the campaign, not by the experiment.
 
 Why sometimes paid? On pages with very little organic traffic, a handful of visitors would make the CTR jump around randomly and a trend would be meaningless. There we use paid traffic instead — on those pages it's the traffic that matters anyway. The label in the cell always tells you which one you're looking at. Organic clicks are always measured against organic sessions only, and paid clicks against paid sessions only — the two are never mixed.
 
 What is it compared against? Ideally the previous experiment on the same page — its CTR over its own evaluation period. For the first experiment on a page, we instead take an equally long period from before the implementation, shifted back by whole weeks so it contains exactly the same weekdays (weekend CTR behaves very differently from weekdays, so the mix must match).
+
+Pages without separate trial-intent click tracking (e.g. the /drivers/ MCP and Cloud pages) fall back to a CTR based on all button clicks (all_button_clicks). Wherever that applies, the chart subtitles and tooltips say so explicitly.
 
 Hover the value itself to see the exact comparison source and the min/max of the daily line.`;
 
@@ -610,8 +708,15 @@ function snapDates(start, end) {
 }
 
 // trend metric: free-trial clicks plus every AI-agent click on the pattern —
-// both contribute to the trial-start goal
-const trendEventsOf = (days) => [...new Set([SPARK_EVENT, ...agentEventsOf(days)])];
+// both contribute to the trial-start goal. Pages without any trial-intent
+// event tracking (e.g. /drivers/[ds]/mcp|cloud/) fall back to all_button_clicks.
+function trendMetricOf(days) {
+  const names = Object.keys(discoveredEvents(days));
+  const events = [...new Set([...(names.includes(SPARK_EVENT) ? [SPARK_EVENT] : []), ...agentEventsOf(days)])];
+  if (events.length) return { events, fallback: false };
+  return { events: ['all_button_clicks'], fallback: true };
+}
+const trendEventsOf = (days) => trendMetricOf(days).events;
 
 const periodCtr = (days, dates, bucket, evNames) => {
   const s = sessSum(days, dates, bucket);
@@ -655,7 +760,8 @@ function sparkline(x) {
   const bucket = organicTotal / dates.length >= MIN_ORGANIC_SESSIONS_PER_DAY ? 'organic' : 'paid';
   const bucketLabel = bucket === 'organic' ? 'Organic' : 'Paid';
 
-  const evNames = trendEventsOf(days);
+  const metric = trendMetricOf(days);
+  const evNames = metric.events;
   const expCtr = periodCtr(days, dates, bucket, evNames);
   if (expCtr === null) return '';
   const base = baselineCtr(x, days, bucket, start, len, evNames);
@@ -676,10 +782,10 @@ function sparkline(x) {
       .map((v, i) => v === null ? null :
         `${(P + (i * (W - 2 * P)) / (dates.length - 1)).toFixed(1)},${(H - P - ((v - min) * (H - 2 * P)) / span).toFixed(1)}`)
       .filter(Boolean);
-    svg = `<svg width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="#0b5fff" stroke-width="1.3"/></svg>`;
+    svg = `<svg width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="#002660" stroke-width="1.3"/></svg>`;
   }
 
-  return `<span title="Trial-intent CTR (${evNames.join(' + ')}), ${bucketLabel} traffic. Baseline (${base.label}): ${baseTxt}. ` +
+  return `<span title="${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages)' : 'Trial-intent CTR'} (${evNames.join(' + ')}), ${bucketLabel} traffic. Baseline (${base.label}): ${baseTxt}. ` +
     `Evaluation period aggregate: ${expCtr.toFixed(1)}%. Line = daily CTR within the evaluation period.">` +
     `${svg}<small>${bucketLabel}: ${baseTxt} → ${expCtr.toFixed(1)}%${delta}</small></span>`;
 }
@@ -748,8 +854,12 @@ function renderExperiments() {
     const ticket = /^https?:\/\//.test(x.ticket || '')
       ? `<a href="${esc(x.ticket)}" target="_blank">${/asana\.com/.test(x.ticket) ? 'Asana' : esc(x.ticket.split('/')[2] || x.ticket)}</a>`
       : esc(x.ticket);
-    const urlLabel = PAYLOAD.patterns.find((p) => p.id === x.url)?.label ?? x.url;
-    html += `<tr><td><code>${esc(urlLabel)}</code></td>` +
+    const pat = PAYLOAD.patterns.find((p) => p.id === x.url);
+    const urlLabel = pat?.label ?? x.url;
+    const urlCell = pat?.example
+      ? `<a class="patLink" href="${pat.example}" target="_blank" title="Open an example page: ${pat.example}"><code>${esc(urlLabel)}</code> ↗</a>`
+      : `<code>${esc(urlLabel)}</code>`;
+    html += `<tr><td>${urlCell}</td>` +
       `<td><strong class="titleCell" data-i="${i}" title="Click to rename">${esc(x.title)}</strong></td>` +
       `<td>${proseCell(x, i, 'original', readOnly)}</td><td>${proseCell(x, i, 'experiment', readOnly)}</td>` +
       `<td>${clamp(x.hypothesis)}</td><td>${ticket}</td>` +
@@ -927,20 +1037,30 @@ async function saveExperiments() {
 // One chart per pattern that has experiments: volume-weighted 7-day trial-intent
 // CTR line, faint daily dots, experiment evaluation periods as bands with their
 // dashed baseline level, and a separate session-volume mini-pane below.
+let tlFilterId = ''; // '' = all patterns with experiments
+
 function renderTimelines() {
   const wrap = $('tlCharts');
   const snap = PAYLOAD?.snapshot;
   if (!snap) { wrap.innerHTML = '<p class="tlIntro">No data snapshot yet.</p>'; return; }
   const dates = dateList(snap.startDate, snap.endDate);
+
+  // filter dropdown: only patterns that actually have experiments
+  const withExps = PAYLOAD.patterns.filter((p) => (PAYLOAD.experiments || []).some((x) => x.url === p.id && x.implDate));
+  if (tlFilterId && !withExps.some((p) => p.id === tlFilterId)) tlFilterId = '';
+  const sel = $('tlFilter');
+  sel.innerHTML = '<option value="">(all patterns with experiments)</option>' +
+    withExps.map((p) => `<option value="${p.id}"${p.id === tlFilterId ? ' selected' : ''}>${p.label}</option>`).join('');
+  sel.onchange = () => { tlFilterId = sel.value; renderTimelines(); };
   let html = '<p class="tlIntro">Each chart: the <strong style="color:var(--accent)">blue line</strong> is the 7-day trial-intent CTR ' +
     '(free-trial + AI-agent clicks ÷ engaged sessions, volume-weighted); dots are single days. Shaded bands are experiment ' +
     'evaluation periods — the dashed line inside each band is that experiment\'s baseline, so line above dashed = better than before. ' +
     'Gray bars below show engaged-session volume. Hover days and bands for details. Patterns without experiments are not shown.</p>';
   let any = false;
-  for (const p of PAYLOAD.patterns) {
+  for (const p of withExps) {
+    if (tlFilterId && p.id !== tlFilterId) continue;
     const exps = (PAYLOAD.experiments || []).filter((x) => x.url === p.id && x.implDate)
       .sort((a, b) => a.implDate.localeCompare(b.implDate));
-    if (!exps.length) continue;
     any = true;
     html += timelineChart(p, exps, dates);
   }
@@ -958,12 +1078,14 @@ function sizeTimelineLanes() {
 }
 window.addEventListener('resize', sizeTimelineLanes);
 
-function timelineChart(pattern, exps, dates) {
+function timelineChart(pattern, exps, dates, opts = {}) {
   const days = PAYLOAD.snapshot.data[pattern.id] || {};
-  const evNames = trendEventsOf(days);
+  const metric = trendMetricOf(days);
+  const evNames = metric.events;
   const organicAvg = dates.reduce((a, d) => a + (days[d]?.s.organic ?? 0), 0) / dates.length;
-  const bucket = organicAvg >= MIN_ORGANIC_SESSIONS_PER_DAY ? 'organic' : 'paid';
-  const bucketLabel = bucket === 'organic' ? 'Organic' : 'Paid';
+  const bucket = opts.bucket || (organicAvg >= MIN_ORGANIC_SESSIONS_PER_DAY ? 'organic' : 'paid');
+  const bucketLabel = BUCKET_LABEL[bucket];
+  const showEvals = opts.showEvals !== false;
 
   const n = dates.length;
   const sess = dates.map((d) => days[d]?.s[bucket] ?? 0);
@@ -975,10 +1097,16 @@ function timelineChart(pattern, exps, dates) {
     return s ? (e / s) * 100 : null;
   });
 
-  // geometry (viewBox units)
+  // geometry (viewBox units); compact = flatter chart for the CAI tab
+  const compact = !!opts.compact;
+  // the full-width timeline charts render larger than the compact CAI chart,
+  // so their in-SVG text takes smaller viewBox sizes
+  const fsAxis = compact ? 9.5 : 8;
+  const fsTitle = compact ? 10 : 8.5;
   const W = 1000, X0 = 46, X1 = 988;
-  const CY0 = 20, CY1 = 186;      // CTR pane
-  const VY0 = 206, VY1 = 256;     // volume pane
+  const CY0 = compact ? 10 : 20, CY1 = compact ? 100 : 186;   // CTR pane
+  const VY0 = compact ? 112 : 206, VY1 = compact ? 158 : 256; // volume pane
+  const VH = compact ? 172 : 272;                             // viewBox height
   const x = (i) => X0 + (i * (X1 - X0)) / Math.max(n - 1, 1);
   const rollMax = Math.max(...roll.filter((v) => v !== null), 1);
   const dom = Math.max(rollMax * 1.35, 5);
@@ -987,27 +1115,27 @@ function timelineChart(pattern, exps, dates) {
   const yv = (v) => VY1 - (v / sessMax) * (VY1 - VY0);
   const xi = new Map(dates.map((d, i) => [d, i]));
 
-  let s = `<svg viewBox="0 0 ${W} 272" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
+  let s = `<svg viewBox="0 0 ${W} ${VH}" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
 
   // gridlines + y labels (recessive)
   const ticks = 4;
   for (let t = 0; t <= ticks; t++) {
     const v = (dom / ticks) * t, gy = y(v);
-    s += `<line x1="${X0}" y1="${gy}" x2="${X1}" y2="${gy}" stroke="#eceff3" stroke-width="1"/>` +
-      `<text x="${X0 - 6}" y="${gy + 3}" text-anchor="end" font-size="9.5" fill="#98a2b3">${v.toFixed(v < 10 ? 1 : 0)}%</text>`;
+    s += `<line x1="${X0}" y1="${gy}" x2="${X1}" y2="${gy}" stroke="#d9d6d2" stroke-width="1"/>` +
+      `<text x="${X0 - 6}" y="${gy + 3}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${v.toFixed(v < 10 ? 1 : 0)}%</text>`;
   }
   // month ticks
   dates.forEach((d, i) => {
     if (d.slice(8) === '01' || i === 0) {
-      s += `<text x="${x(i)}" y="${CY1 + 12}" font-size="9.5" fill="#98a2b3">${d.slice(5, 7)}/${d.slice(0, 4)}</text>` +
-        `<line x1="${x(i)}" y1="${CY1}" x2="${x(i)}" y2="${CY1 + 3}" stroke="#c8cfd9"/>`;
+      s += `<text x="${x(i)}" y="${CY1 + 12}" font-size="${fsAxis}" fill="#777577">${d.slice(5, 7)}/${d.slice(0, 4)}</text>` +
+        `<line x1="${x(i)}" y1="${CY1}" x2="${x(i)}" y2="${CY1 + 3}" stroke="#b5b9bc"/>`;
     }
   });
 
   // experiment bands + baselines (annotation layer under the data marks)
   const lanes = [];
   const evalBlocks = [];
-  for (const ex of exps) {
+  for (const ex of (opts.showBands === false ? [] : exps)) {
     const bs = evalStart(ex.implDate);
     const be = ex.evalEnd || PAYLOAD.snapshot.endDate;
     const i0 = xi.get(bs < dates[0] ? dates[0] : bs), i1 = xi.get(be > dates[n - 1] ? dates[n - 1] : be);
@@ -1023,49 +1151,58 @@ function timelineChart(pattern, exps, dates) {
       `\nPeriod: ${pCtr === null ? 'n/a' : pCtr.toFixed(1) + '%'}${delta}`;
     // short evaluation block shown under the chart, sized/positioned like the
     // experiment's band (full AI evaluation on hover); dates without the year
-    const firstSentences = (ex.evaluation || '').split(/(?<=\.)\s+/).slice(0, 2).join(' ');
-    const shortEval = firstSentences.length > 220 ? firstSentences.slice(0, 217) + '…' : firstSentences;
-    let leftPct = bx0 / 10, widthPct = (bx1 - bx0) / 10;
-    if (widthPct < 13) widthPct = 13; // keep narrow bands readable
-    if (leftPct + widthPct > 98.8) leftPct = 98.8 - widthPct;
-    evalBlocks.push({
-      lane,
-      html: `<div class="tlEvalBlock" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%" title="${esc(ex.evaluation || '')}">` +
-        `<strong>${esc(ex.title)}</strong> <span class="meta">${fmtShort(bs)}–${fmtShort(be)}${ex.evalEnd ? '' : ' (running)'} · ` +
-        `${base.ctr === null ? 'n/a' : base.ctr.toFixed(1) + '%'} → ${pCtr === null ? 'n/a' : pCtr.toFixed(1) + '%'}${delta}</span>` +
-        `<br><span class="evalTxt">${shortEval ? esc(shortEval) : '(no AI evaluation yet)'}</span></div>`,
-    });
+    if (showEvals) {
+      const firstSentences = (ex.evaluation || '').split(/(?<=\.)\s+/).slice(0, 2).join(' ');
+      const shortEval = firstSentences.length > 220 ? firstSentences.slice(0, 217) + '…' : firstSentences;
+      let leftPct = bx0 / 10, widthPct = (bx1 - bx0) / 10;
+      if (widthPct < 13) widthPct = 13; // keep narrow bands readable
+      if (leftPct + widthPct > 98.8) leftPct = 98.8 - widthPct;
+      evalBlocks.push({
+        lane,
+        html: `<div class="tlEvalBlock" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%" title="${esc(ex.evaluation || '')}">` +
+          `<strong>${esc(ex.title)}</strong> <span class="meta">${fmtShort(bs)}–${fmtShort(be)}${ex.evalEnd ? '' : ' (running)'} · ` +
+          `${base.ctr === null ? 'n/a' : base.ctr.toFixed(1) + '%'} → ${pCtr === null ? 'n/a' : pCtr.toFixed(1) + '%'}${delta}</span>` +
+          `<br><span class="evalTxt">${shortEval ? esc(shortEval) : '(no AI evaluation yet)'}</span></div>`,
+      });
+    }
     s += `<g><title>${esc(tip)}</title>` +
-      `<rect x="${bx0}" y="${CY0}" width="${Math.max(bx1 - bx0, 2)}" height="${CY1 - CY0}" fill="rgba(11,95,255,.055)"/>` +
-      `<line x1="${bx0}" y1="${CY0}" x2="${bx0}" y2="${CY1}" stroke="#b8c6e8" stroke-width="1"/>` +
-      `<line x1="${bx1}" y1="${CY0}" x2="${bx1}" y2="${CY1}" stroke="#b8c6e8" stroke-width="1" stroke-dasharray="2 2"/>` +
+      `<rect x="${bx0}" y="${CY0}" width="${Math.max(bx1 - bx0, 2)}" height="${CY1 - CY0}" fill="rgba(255,229,0,.16)"/>` +
+      `<line x1="${bx0}" y1="${CY0}" x2="${bx0}" y2="${CY1}" stroke="#ccb700" stroke-width="1"/>` +
+      `<line x1="${bx1}" y1="${CY0}" x2="${bx1}" y2="${CY1}" stroke="#ccb700" stroke-width="1" stroke-dasharray="2 2"/>` +
       (base.ctr !== null && base.ctr <= dom
-        ? `<line x1="${bx0}" y1="${y(base.ctr)}" x2="${bx1}" y2="${y(base.ctr)}" stroke="#475467" stroke-width="1.4" stroke-dasharray="5 4"/>` : '') +
+        ? `<line x1="${bx0}" y1="${y(base.ctr)}" x2="${bx1}" y2="${y(base.ctr)}" stroke="#5e5d60" stroke-width="1.4" stroke-dasharray="5 4"/>` : '') +
       (bx0 + 4 + ex.title.length * 5.6 > X1
-        ? `<text x="${X1 - 4}" y="${CY0 + 11 + lane * 13}" text-anchor="end" font-size="10" font-weight="600" fill="#344054">${esc(ex.title)}</text>`
-        : `<text x="${bx0 + 4}" y="${CY0 + 11 + lane * 13}" font-size="10" font-weight="600" fill="#344054">${esc(ex.title)}</text>`) + '</g>';
+        ? `<text x="${X1 - 4}" y="${CY0 + 11 + lane * 13}" text-anchor="end" font-size="${fsTitle}" font-weight="600" fill="#5e5d60" class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(ex)}">${esc(ex.title)}</text>`
+        : `<text x="${bx0 + 4}" y="${CY0 + 11 + lane * 13}" font-size="${fsTitle}" font-weight="600" fill="#5e5d60" class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(ex)}">${esc(ex.title)}</text>`) + '</g>';
   }
 
-  // volume mini-pane
-  const bw = Math.max(((X1 - X0) / n) * 0.7, 0.8);
+  // volume mini-pane (slightly wider bars in the compact chart)
+  const bw = Math.max(((X1 - X0) / n) * (compact ? 0.85 : 0.7), 0.8);
   dates.forEach((d, i) => {
-    if (sess[i]) s += `<rect x="${x(i) - bw / 2}" y="${yv(sess[i])}" width="${bw}" height="${VY1 - yv(sess[i])}" fill="#e0e4ea"/>`;
+    if (sess[i]) s += `<rect x="${x(i) - bw / 2}" y="${yv(sess[i])}" width="${bw}" height="${VY1 - yv(sess[i])}" fill="#d3d6d8"/>`;
   });
-  s += `<line x1="${X0}" y1="${VY1}" x2="${X1}" y2="${VY1}" stroke="#d5dae2"/>` +
-    `<text x="${X0 - 6}" y="${VY0 + 4}" text-anchor="end" font-size="9.5" fill="#98a2b3">${fmtInt(sessMax)}</text>` +
-    `<text x="${X1}" y="${VY1 + 12}" text-anchor="end" font-size="9.5" fill="#98a2b3">engaged sessions/day (${bucketLabel.toLowerCase()})</text>`;
+  s += `<line x1="${X0}" y1="${VY1}" x2="${X1}" y2="${VY1}" stroke="#b5b9bc"/>` +
+    `<text x="${X0 - 6}" y="${VY0 + 4}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${fmtInt(sessMax)}</text>` +
+    `<text x="${X1}" y="${VY1 + 12}" text-anchor="end" font-size="${fsAxis}" fill="#777577">engaged sessions/day (${bucketLabel.toLowerCase()})</text>`;
 
-  // daily dots (faint) + 7-day line
-  dates.forEach((d, i) => {
-    if (daily[i] !== null) s += `<circle cx="${x(i)}" cy="${y(daily[i])}" r="1.7" fill="#0b5fff" opacity=".3"/>`;
-  });
+  // daily dots (faint; timeline charts only) + 7-day line
+  if (!compact) {
+    dates.forEach((d, i) => {
+      if (daily[i] !== null) s += `<circle cx="${x(i)}" cy="${y(daily[i])}" r="1.7" fill="#002660" opacity=".3"/>`;
+    });
+  }
   let path = '', pen = false;
   roll.forEach((v, i) => {
     if (v === null) { pen = false; return; }
     path += `${pen ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`;
     pen = true;
   });
-  s += `<path d="${path}" fill="none" stroke="#0b5fff" stroke-width="2" stroke-linejoin="round"/>`;
+  s += `<path d="${path}" fill="none" stroke="#002660" stroke-width="2" stroke-linejoin="round"/>`;
+  // "CTR" tag in line color at the end of the line (compact CAI chart)
+  if (compact) {
+    const li = roll.reduce((a, v, i) => (v === null ? a : i), -1);
+    if (li >= 0) s += `<text x="${x(li)}" y="${Math.max(y(roll[li]) - 6, CY0 + 8)}" text-anchor="end" font-size="11" font-weight="600" fill="#002660">CTR</text>`;
+  }
 
   // per-day hover targets (native tooltips)
   const colW = (X1 - X0) / Math.max(n - 1, 1);
@@ -1082,11 +1219,15 @@ function timelineChart(pattern, exps, dates) {
   for (let l = 0; l <= maxLane; l++) {
     evalsHtml += `<div class="tlEvalLane">${evalBlocks.filter((b) => b.lane === l).map((b) => b.html).join('')}</div>`;
   }
-  return `<div class="tlChart"><h3>${esc(pattern.label)}</h3>` +
-    `<span class="meta">Trial-intent CTR · ${bucketLabel} traffic · 7-day volume-weighted line, single-day dots</span>${s}${evalsHtml}</div>`;
+  const heading = pattern.example
+    ? `<a class="patLink" href="${pattern.example}" target="_blank" title="Open an example page: ${pattern.example}">${esc(pattern.label)} ↗</a>`
+    : esc(pattern.label);
+  return `<div class="tlChart"><h3>${heading}</h3>` +
+    `<span class="meta">${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages — based on all_button_clicks)' : 'Trial-intent CTR'} · ${bucketLabel} traffic · 7-day volume-weighted line${compact ? '' : ', single-day dots'}</span>${s}${evalsHtml}</div>`;
 }
 
-let currentPatternId = null;
+let currentPatternId = 'connect-ai-all'; // CAI tab default: all Connect AI pages
+let ctrBucket = 'organic'; // traffic type for the CAI tab's development chart
 
 // In the standalone artifact, API calls go to the local dashboard server.
 const API = window.__EMBEDDED__ ? 'http://localhost:3010' : '';
@@ -1128,6 +1269,10 @@ async function load() {
   sel.innerHTML = patternOptionsHtml();
   sel.onchange = () => {
     currentPatternId = sel.value;
+    render();
+  };
+  $('ctrBucketSel').onchange = () => {
+    ctrBucket = $('ctrBucketSel').value;
     render();
   };
   render();

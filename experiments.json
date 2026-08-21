@@ -79,7 +79,7 @@
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1215769451747283?focus=true",
     "implDate": "2026-07-07",
     "evalEnd": "2026-07-21",
-    "title": "Three-column CTAs",
+    "title": "CTA rearrangement",
     "evaluation": "Negative: this test restored the proven feature bullets and spread them across three columns while de-emphasizing the Product Tour CTA — yet the paid trial-intent CTR fell from 13.6% to 11.8% (−14%), and averaged 9.4% in the four weeks after the window with the layout still live (11.4% most recently). Since feature copy on its own had reached 15.0%, the layout and CTA-hierarchy changes plausibly cost around a fifth of the trial-intent CTR. Traffic note: window volumes were comparable (+11%), but the baseline period's traffic was erratic (±50% daily swings while a non-converting Japanese paid wave receded) whereas the window itself was calm — and the joint-query visual (launched one day in) plus the top15 rollout overlap this pattern's numbers.",
     "suggestions": "Unwind the layout/CTA-hierarchy changes toward the plain feature-bullet version, or re-run the CTA-hierarchy test in a clean window isolated from content changes. Keep layout tests and content/visual tests on non-overlapping schedules or disjoint page subsets."
   },
@@ -109,7 +109,7 @@
   },
   {
     "url": "home",
-    "title": "Main Get Started",
+    "title": "Changed CTA text",
     "original": "main CTA \"Start Free With Email\"",
     "experiment": "main CTA: \"Get Started Free\"",
     "hypothesis": "“Get Started Free” is more common and easier to grasp because it’s less confusing than the version with “...With Email.” The more common CTA text should increase the CTR.",
@@ -119,5 +119,15 @@
     "evalUpdateRequested": true,
     "evaluation": "Strong positive: renaming the main CTA from \"Start Free With Email\" to \"Get Started Free\" lifted the homepage's organic trial-intent CTR from 3.8% to 9.8% (+160%). The organic base ran ~15% below the pre-period (~102 vs. ~120 sessions/day, including a few very thin days), yet absolute clicks more than doubled — and direct traffic moved in the same direction — so the effect is robust to the volume dip. The evaluation window has just closed; the new wording remains live, and the coming weeks will show whether the lift sustains.",
     "suggestions": "Confirm once the window closes (data settled ~Aug 22), then roll \"Get Started Free\" out to the other /ai/ pages as its own experiment per page type. With the wording optimized, point the next homepage test at CTA prominence and placement."
+  },
+  {
+    "url": "home",
+    "title": "Prefilled deep links",
+    "original": "The page provides onboarding prompts in modal windows for ChatGPT and Claude for copying & pasting.",
+    "experiment": "Remove the modal windows in favour of deep links with prefilled prompts that paste them into ChatGPT and Claude automatically. Set a button for the listed CAI app in ChatGPT's and Claude's app directories right next to the button with the deep link with the prefilled prompts.",
+    "hypothesis": "By removing modal windows and the additional step of copying & pasting the prompts, prompt usage should increase. This will be measured by tracking how clicks on the prompt buttons contribute to free trial clicks and to the overall free trial CTR.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217603667306139?focus=true",
+    "implDate": "2026-08-20",
+    "evalEnd": ""
   }
 ]

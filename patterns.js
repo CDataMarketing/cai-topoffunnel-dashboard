@@ -21,6 +21,7 @@ const SCOPES = {
 const PATTERNS = [
   {
     id: 'home',
+    example: 'https://www.cdata.com/',
     label: '/ (Homepage)',
     scope: 'home',
     regex: '^/(\\?.*)?$',
@@ -28,6 +29,7 @@ const PATTERNS = [
   },
   {
     id: 'ai',
+    example: 'https://www.cdata.com/ai/',
     label: '/ai/',
     scope: 'ai',
     regex: '^/ai/(\\?.*)?$',
@@ -38,6 +40,7 @@ const PATTERNS = [
     // driver MCP + Cloud pages — one traffic-mix/CTR view of everything that
     // links to the Connect AI free trial and/or product tour
     id: 'connect-ai-all',
+    example: 'https://www.cdata.com/ai/',
     label: 'All Connect AI pages (/ai/* + /drivers/[ds]/mcp|cloud/)',
     scopes: ['ai', 'drivers'],
     regex: '^/(ai/.*|drivers/[^/]+/(mcp|cloud)/(\\?.*)?)$',
@@ -46,6 +49,7 @@ const PATTERNS = [
   {
     // same aggregate without the /drivers/ pages: everything under /ai/ only
     id: 'ai-all',
+    example: 'https://www.cdata.com/ai/',
     label: 'All /ai/* pages (without /drivers/)',
     scope: 'ai',
     regex: '^/ai/.*$',
@@ -53,6 +57,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-llm',
+    example: 'https://www.cdata.com/ai/connect/claude/',
     label: '/ai/connect/[LLM]/',
     scope: 'ai',
     regex: `^/ai/connect/${LLM_SLUGS}/(\\?.*)?$`,
@@ -60,6 +65,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-datasource',
+    example: 'https://www.cdata.com/ai/connect/salesforce/',
     label: '/ai/connect/[datasource]/',
     scope: 'ai',
     // All single-segment pages without hyphens, minus the LLM pages.
@@ -69,6 +75,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-ds-to-llm',
+    example: 'https://www.cdata.com/ai/connect/salesforce-to-claude/',
     label: '/ai/connect/[datasource]-to-[LLM]/',
     scope: 'ai',
     regex: '^/ai/connect/[^/]+-to-[^/]+/(\\?.*)?$',
@@ -78,6 +85,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-main',
+    example: 'https://www.cdata.com/ai/connect/',
     label: '/ai/connect/ (main page)',
     scope: 'ai',
     regex: '^/ai/connect/(\\?.*)?$',
@@ -85,6 +93,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-sf-to-claude',
+    example: 'https://www.cdata.com/ai/connect/salesforce-to-claude/',
     label: '/ai/connect/salesforce-to-claude/',
     scope: 'ai',
     regex: '^/ai/connect/salesforce-to-claude/(\\?.*)?$',
@@ -92,6 +101,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-top15-to-claude',
+    example: 'https://www.cdata.com/ai/connect/qbonline-to-claude/',
     label: '/ai/connect/[top15]-to-claude/',
     scope: 'ai',
     regex: '^/ai/connect/(qbonline|sql|github|shopify|athena|workday|odata|bigquery|servicenow|sapbusinessone|kintone|pardot|saphana|adobeanalytics|intacct)-to-claude/(\\?.*)?$',
@@ -99,6 +109,7 @@ const PATTERNS = [
   },
   {
     id: 'ai-connect-top16-to-claude',
+    example: 'https://www.cdata.com/ai/connect/salesforce-to-claude/',
     label: '/ai/connect/[top16]-to-claude/ (incl. salesforce)',
     scope: 'ai',
     regex: '^/ai/connect/(salesforce|qbonline|sql|github|shopify|athena|workday|odata|bigquery|servicenow|sapbusinessone|kintone|pardot|saphana|adobeanalytics|intacct)-to-claude/(\\?.*)?$',
@@ -106,6 +117,7 @@ const PATTERNS = [
   },
   {
     id: 'drivers-ds-mcp',
+    example: 'https://www.cdata.com/drivers/salesforce/mcp/',
     label: '/drivers/[datasource]/mcp/',
     scope: 'drivers',
     regex: '^/drivers/[^/]+/mcp/(\\?.*)?$',
@@ -113,6 +125,7 @@ const PATTERNS = [
   },
   {
     id: 'drivers-ds-cloud',
+    example: 'https://www.cdata.com/drivers/salesforce/cloud/',
     label: '/drivers/[datasource]/cloud/',
     scope: 'drivers',
     regex: '^/drivers/[^/]+/cloud/(\\?.*)?$',

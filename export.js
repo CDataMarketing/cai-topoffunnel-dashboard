@@ -16,7 +16,7 @@ function build() {
   let experiments = [];
   try { experiments = JSON.parse(fs.readFileSync(path.join(__dirname, 'experiments.json'), 'utf8')); } catch {}
   const payload = {
-    patterns: PATTERNS.map(({ id, label, regex, excludeRegex, events, extraEvents, presetRanges }) => ({ id, label, regex, excludeRegex, events, extraEvents, presetRanges })),
+    patterns: PATTERNS.map(({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example }) => ({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example })),
     snapshot,
     experiments,
   };

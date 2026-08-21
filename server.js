@@ -45,7 +45,7 @@ app.get('/api/data', (req, res) => {
     // no snapshot yet — UI shows an empty state
   }
   res.json({
-    patterns: PATTERNS.map(({ id, label, regex, excludeRegex, events, extraEvents, presetRanges }) => ({ id, label, regex, excludeRegex, events, extraEvents, presetRanges })),
+    patterns: PATTERNS.map(({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example }) => ({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example })),
     snapshot,
     experiments: readExperiments(),
   });

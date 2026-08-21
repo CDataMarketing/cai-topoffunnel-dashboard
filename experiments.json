@@ -116,9 +116,9 @@
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217158695066663?focus=true",
     "implDate": "2026-08-05",
     "evalEnd": "2026-08-19",
-    "evalUpdateRequested": true,
-    "evaluation": "Strong positive: renaming the main CTA from \"Start Free With Email\" to \"Get Started Free\" lifted the homepage's organic trial-intent CTR from 3.8% to 9.8% (+160%). The organic base ran ~15% below the pre-period (~102 vs. ~120 sessions/day, including a few very thin days), yet absolute clicks more than doubled — and direct traffic moved in the same direction — so the effect is robust to the volume dip. The evaluation window has just closed; the new wording remains live, and the coming weeks will show whether the lift sustains.",
-    "suggestions": "Confirm once the window closes (data settled ~Aug 22), then roll \"Get Started Free\" out to the other /ai/ pages as its own experiment per page type. With the wording optimized, point the next homepage test at CTA prominence and placement."
+    "evalUpdateRequested": false,
+    "evaluation": "Strong positive, confirmed over the full 14-day window: renaming the main CTA from \"Start Free With Email\" to \"Get Started Free\" lifted the homepage's organic trial-intent CTR from 3.8% to 9.4% (+149%), with clicks more than doubling (63 → 146). The organic base was stable (~111 vs. ~120 sessions/day, −7%), and the lift held through both window weeks (9.9%, then 8.8%) — a durable wording effect, not a launch spike. The new CTA remains live; any post-window reading is confounded by the prefilled-deep-links experiment launched on the same page immediately afterwards.",
+    "suggestions": "Roll \"Get Started Free\" out to the other Connect AI page types as its own experiment per pattern — the /ai/ hub and connect pages still use different wording. Judge the running prefilled-deep-links test against this window's 9.4% as the new homepage reference level. After that test, CTA prominence (placement, size, contrast) is the next homepage lever."
   },
   {
     "url": "home",

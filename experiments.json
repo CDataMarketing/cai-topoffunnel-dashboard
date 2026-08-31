@@ -129,5 +129,15 @@
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217603667306139?focus=true",
     "implDate": "2026-08-20",
     "evalEnd": ""
+  },
+  {
+    "url": "ai-connect-datasource",
+    "title": "MCP page sections",
+    "original": "The /ai/connect/[datasource]/ pages with their own sections below the header.",
+    "experiment": "All sections below the header (including the footer) from the corresponding /drivers/[datasource]/mcp/ page added to the /ai/connect/[datasource]/ page — first on /ai/connect/salesforce/.",
+    "hypothesis": "The MCP page's concrete, driver-specific content gives visitors a better picture of what Connect AI does with their data source, which should increase trial-intent clicks.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217369572512215",
+    "implDate": "2026-08-27",
+    "evalEnd": ""
   }
 ]

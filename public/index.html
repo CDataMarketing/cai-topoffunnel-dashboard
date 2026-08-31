@@ -104,6 +104,9 @@
   tr.evt td { background: var(--evt-bg); }
   tr.extra td { background: var(--extra-bg); }
   tr.ctr td { background: var(--ctr-bg); font-weight: 600; }
+  /* highlighted key-metric block: free trial clicks + its CTR sub-row */
+  tr.hl td { background: var(--ctr-bg); font-weight: 600; }
+  tr.evctr.hl td { background: var(--ctr-bg); }
   tr.evctr td, tr.evctr th { font-size: 9.5px; font-style: italic; color: var(--muted); padding-top: 0; padding-bottom: 2px; }
   tr.evctr td { background: var(--evt-bg); }
   tr.evctr.extra td { background: var(--extra-bg); }
@@ -351,8 +354,8 @@ function metricRows(pattern, days) {
   const rest = names.filter((n) => n !== 'all_button_clicks' && n !== 'cc_ai_free_trial' && !agentEvents.includes(n))
     .sort((a, b) => totals[b] - totals[a] || a.localeCompare(b));
 
-  // 2a) all_button_clicks leads ('extra' = outside CTR semantics)
-  if (names.includes('all_button_clicks')) eventBlock('all_button_clicks', ['all_button_clicks'], 'extra');
+  // 2a) all_button_clicks leads (outside CTR semantics — neutral row style)
+  if (names.includes('all_button_clicks')) eventBlock('all_button_clicks', ['all_button_clicks'], 'evt');
 
   // 2b) trial-intent block: cc_ai_free_trial + all AI-agent clicks combined
   // (same metric as the CTR trend). The agent breakdown is collapsed beneath
@@ -365,7 +368,7 @@ function metricRows(pattern, days) {
     const agToggle = combined
       ? ` <button class="agentToggle" data-key="${agKey}" title="${agOpen ? 'Hide' : 'Show'} the breakdown into the individual trial-intent CTAs (cc_ai_free_trial + the AI-agent clicks)">${agOpen ? '⊟ CTAs' : '⊞ CTAs'}</button>`
       : '';
-    eventBlock(label, trialSet, 'evt', agToggle);
+    eventBlock(label, trialSet, 'hl', agToggle); // 'hl' = the tab's highlighted key metric
     if (combined && agOpen) {
       if (hasFT) eventBlock('↳ cc_ai_free_trial (alone)', ['cc_ai_free_trial'], 'extra subEvt');
       eventBlock('↳ all_ai_agent_clicks', agentEvents, 'extra subEvt');

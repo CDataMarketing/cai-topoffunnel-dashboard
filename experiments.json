@@ -137,6 +137,8 @@
     "experiment": "Copied all sections from the /drivers/[datasource]/mcp/ and the .../cloud/ page to the /ai/connect/[datasource]/ page.\n- Natural language querying\n- 3 Pillars (connect, context, control)\n- Role-based query examples\n- Compatible AI clients & agents\n- 4 steps to go live\n- BI/ETL tool integrations\n- Get started free",
     "hypothesis": "With the enriched content on these pages, the SEO ranking should improve and the organic traffic increase. Due to the expanded information, the visitor could feel empowered to start a trial or choose an AI agent and start a trial from the corresponding X+Y page.",
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217369572512215?focus=true",
+    "secondaryEvents": ["cc_ai_tool"],
+    "secondaryLabel": "X+Y page clicks",
     "implDate": "2026-08-26",
     "evalEnd": ""
   }

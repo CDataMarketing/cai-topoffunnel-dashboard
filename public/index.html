@@ -687,6 +687,8 @@ What is it compared against? Ideally the previous experiment on the same page �
 
 Pages without separate trial-intent click tracking (e.g. the /drivers/ MCP and Cloud pages) fall back to a CTR based on all button clicks (all_button_clicks). Wherever that applies, the chart subtitles and tooltips say so explicitly.
 
+Some experiments track a secondary metric besides the trial-intent CTR (e.g. cc_ai_tool — clicks toward the /ai/connect/[datasource]-to-[LLM] combination pages). Those experiments show a second, smaller line in this column with the metric's own rate and click count. If the event tracking only started with the experiment, no baseline exists and the cell says so instead of showing a comparison.
+
 Hover the value itself to see the exact comparison source and the min/max of the daily line.`;
 
 const EXP_COLUMNS = ['Affected URL', 'Experiment', 'Original', 'Changes', 'Hypothesis', 'Ticket',
@@ -771,26 +773,47 @@ function sparkline(x) {
   const baseTxt = base.ctr === null ? 'n/a' : base.ctr.toFixed(1) + '%';
   const delta = base.ctr ? ` (${expCtr >= base.ctr ? '+' : ''}${(((expCtr - base.ctr) / base.ctr) * 100).toFixed(0)}%)` : '';
 
-  // daily trend line within the evaluation period
-  const vals = dates.map((d) => {
+  // daily rate line within the evaluation period (shared by main + secondary)
+  const dailyRates = (ev) => dates.map((d) => {
     const s = days[d]?.s[bucket] ?? 0;
-    return s ? (eventSum(days, [d], evNames, bucket) / s) * 100 : null;
+    return s ? (eventSum(days, [d], ev, bucket) / s) * 100 : null;
   });
-  const nums = vals.filter((v) => v !== null);
-  let svg = '';
-  if (nums.length >= 2) {
+  const miniLine = (vals, height = 26) => {
+    const nums = vals.filter((v) => v !== null);
+    if (nums.length < 2) return '';
     const min = Math.min(...nums), max = Math.max(...nums), span = (max - min) || 1;
-    const W = 110, H = 26, P = 2;
+    const W = 110, H = height, P = 2;
     const pts = vals
       .map((v, i) => v === null ? null :
         `${(P + (i * (W - 2 * P)) / (dates.length - 1)).toFixed(1)},${(H - P - ((v - min) * (H - 2 * P)) / span).toFixed(1)}`)
       .filter(Boolean);
-    svg = `<svg width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="#002660" stroke-width="1.3"/></svg>`;
-  }
+    return `<svg width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="#002660" stroke-width="1.3"/></svg>`;
+  };
+  const svg = miniLine(dailyRates(evNames));
 
-  return `<span title="${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages)' : 'Trial-intent CTR'} (${evNames.join(' + ')}), ${bucketLabel} traffic. Baseline (${base.label}): ${baseTxt}. ` +
+  const main = `<span title="${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages)' : 'Trial-intent CTR'} (${evNames.join(' + ')}), ${bucketLabel} traffic. Baseline (${base.label}): ${baseTxt}. ` +
     `Evaluation period aggregate: ${expCtr.toFixed(1)}%. Line = daily CTR within the evaluation period.">` +
     `${svg}<small>${bucketLabel}: ${baseTxt} → ${expCtr.toFixed(1)}%${delta}</small></span>`;
+
+  // optional secondary metric declared on the experiment (e.g. cc_ai_tool =
+  // clicks toward the X+Y combination pages): its own smaller line + numbers.
+  // A baseline only exists if the events fired before the window at all —
+  // freshly instrumented events get an explicit no-baseline note instead.
+  let secondary = '';
+  if (Array.isArray(x.secondaryEvents) && x.secondaryEvents.length) {
+    const ev2 = x.secondaryEvents;
+    const label2 = x.secondaryLabel || ev2.join(' + ');
+    const rate2 = periodCtr(days, dates, bucket, ev2);
+    const clicks2 = eventSum(days, dates, ev2, bucket);
+    const trackedBefore = Object.keys(days).some((d) => d < start && ev2.some((n) => (days[d].e[n]?.all ?? 0) > 0));
+    const base2 = trackedBefore ? baselineCtr(x, days, bucket, start, len, ev2) : { ctr: null, label: '' };
+    const base2Txt = base2.ctr === null ? '—' : base2.ctr.toFixed(1) + '%';
+    secondary = `<br><span title="Secondary metric “${esc(label2)}” (${ev2.join(' + ')}), ${bucketLabel} traffic. ` +
+      `${trackedBefore ? `Baseline (${base2.label}): ${base2Txt}.` : 'No baseline — this event tracking started with the experiment.'} ` +
+      `Evaluation period: ${fmtInt(clicks2)} clicks, ${rate2 === null ? 'n/a' : rate2.toFixed(1) + '%'} of ${bucketLabel.toLowerCase()} sessions. Line = daily rate.">` +
+      `${miniLine(dailyRates(ev2), 16)}<small><em>${esc(label2)}: ${base2Txt} → ${rate2 === null ? 'n/a' : rate2.toFixed(1) + '%'} (${fmtInt(clicks2)} clicks)</em></small></span>`;
+  }
+  return main + secondary;
 }
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');

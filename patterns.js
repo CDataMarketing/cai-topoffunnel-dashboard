@@ -74,6 +74,16 @@ const PATTERNS = [
     events: ['cc_ai_product_tour', 'cc_ai_free_trial'],
   },
   {
+    id: 'ai-connect-sap-datasource',
+    example: 'https://www.cdata.com/ai/connect/sapbusinessone/',
+    label: '/ai/connect/[SAPdatasource]/',
+    scope: 'ai',
+    // the 14 SAP-technology datasource pages served by Connect AI (per Christof,
+    // 2026-09-01) — basis of the "Other SAP Technologies" experiment
+    regex: '^/ai/connect/(sapbusinessone|sapbusinessobjectsbi|saphybris|concur|saparibaprocurement|saparibasource|sapbydesign|sapfieldglass|sapgateway|saphana|sapsuccessfactors|sapsuccessfactorslms|sybase|sybaseiq)/(\\?.*)?$',
+    events: ['cc_ai_product_tour', 'cc_ai_free_trial'],
+  },
+  {
     id: 'ai-connect-ds-to-llm',
     example: 'https://www.cdata.com/ai/connect/salesforce-to-claude/',
     label: '/ai/connect/[datasource]-to-[LLM]/',

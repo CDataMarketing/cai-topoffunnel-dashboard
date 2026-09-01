@@ -141,5 +141,17 @@
     "secondaryLabel": "X+Y page clicks",
     "implDate": "2026-08-26",
     "evalEnd": ""
+  },
+  {
+    "url": "ai-connect-sap-datasource",
+    "title": "Other SAP Technologies button",
+    "original": "SAP related pages had no link to other SAP Technology pages.",
+    "experiment": "\"Other SAP Technologies\" button for opening a modal window with 13 more SAP tools CAI can serve.",
+    "hypothesis": "Providing an overview with all covered SAP tools increases his confidence in having found the right tool and his willingness to start a trial. This will be measured by the aggregated trial CTR and the usage of the \"Other SAP Technologies\" button.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1218009109616291?focus=true",
+    "secondaryEvents": ["cc_ai_sap_tools"],
+    "secondaryLabel": "SAP tools button clicks",
+    "implDate": "2026-09-01",
+    "evalEnd": ""
   }
 ]

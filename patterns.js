@@ -116,6 +116,16 @@ const PATTERNS = [
     events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
   },
   {
+    id: 'ai-integrations-llm',
+    example: 'https://www.cdata.com/ai/integrations/anthropic/',
+    label: '/ai/integrations/[LLM]/',
+    scope: 'ai',
+    // provider slugs (anthropic, openai, microsoft, google, databricks, n8n, …):
+    // any single segment, so newly launched providers show up automatically
+    regex: '^/ai/integrations/[^/]+/(\\?.*)?$',
+    events: [],
+  },
+  {
     id: 'drivers-ds-mcp',
     example: 'https://www.cdata.com/drivers/salesforce/mcp/',
     label: '/drivers/[datasource]/mcp/',

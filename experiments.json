@@ -129,8 +129,13 @@
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217603667306139?focus=true",
     "implDate": "2026-08-20",
     "evalEnd": "",
-    "evaluation": "Neutral so far: replacing the copy-paste prompt modals with prefilled deep links leaves the homepage’s organic trial-intent CTR at 9.8% vs. 9.4% under the preceding period (+4% — within noise on a stable base of ~102 organic sessions/day). Prompt usage itself is measurable but small: the Claude deep link collected 13 organic clicks in the window against 125 direct free-trial clicks, and the ChatGPT prompt event has recorded no organic clicks yet. The first window half ran stronger than the second (11.3% → 8.6%); the test is still running, so the aggregate may settle either way.",
-    "suggestions": "Verify the ChatGPT deep-link instrumentation — cc_ai_chatgpt_prompt exists but has not fired organically, which may be a wiring issue rather than non-usage. If prompt clicks stay this low relative to direct trial clicks, test making the prompt buttons more prominent or surfacing them to visitors arriving from AI-related searches."
+    "evaluation": "Neutral so far: replacing the copy-paste prompt modals with prefilled deep links leaves the homepage’s organic trial-intent CTR at 9.8% vs. 9.4% under the preceding period (+4% — within noise on a stable base of ~102 organic sessions/day). The prompt CTAs (tracked only since the experiment went live, so measured from zero) are used sparingly: 13 organic clicks — 0.85% of organic sessions, 29 clicks across all traffic — against 125 direct free-trial clicks, all of them via the Claude link; the ChatGPT prompt event has recorded no organic clicks yet. The first window half ran stronger than the second (11.3% → 8.6%); the test is still running, so the aggregate may settle either way.",
+    "suggestions": "Verify the ChatGPT deep-link instrumentation — cc_ai_chatgpt_prompt exists but has not fired organically, which may be a wiring issue rather than non-usage. If prompt clicks stay this low relative to direct trial clicks, test making the prompt buttons more prominent or surfacing them to visitors arriving from AI-related searches.",
+    "secondaryEvents": [
+      "cc_ai_chatgpt_prompt",
+      "cc_ai_claude_prompt"
+    ],
+    "secondaryLabel": "Prompt CTA clicks"
   },
   {
     "url": "ai-connect-datasource",

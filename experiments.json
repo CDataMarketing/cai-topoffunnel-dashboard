@@ -68,7 +68,7 @@
     "implDate": "2026-06-25",
     "evalEnd": "2026-07-09",
     "title": "Refined agent logos",
-    "evaluation": "Positive and sustained: the refined presentation — five key agents below the fold, each with its own trial CTA — lifted the organic trial-intent CTR from 18.0% to 20.7% (+15%) in the evaluation window. The change remains live, and in the six weeks since, the CTR has held at 21.7% (23.8% in the most recent week). The organic base stayed stable throughout (~51–61 sessions/day across baseline, window, and post-period), which strengthens confidence that this is a durable improvement, not a novelty or volume effect.",
+    "evaluation": "Positive and sustained: the refined presentation — five key agents below the fold, each with its own trial CTA — lifted the organic trial-intent CTR from 18.0% to 20.7% (+15%) in the evaluation window. The change remains live, and in the eight weeks since, the CTR has held at 21.7% (20.6% in the most recent week). The organic base stayed stable throughout (~46–61 sessions/day across baseline, window, and post-period), which strengthens confidence that this is a durable improvement, not a novelty or volume effect.",
     "suggestions": "Break the agent clicks down per agent (each cc_ai_*_trial event is tracked) and order the five logos by click share. Wire the per-agent CTAs to the planned customized sign-up pages."
   },
   {
@@ -80,7 +80,7 @@
     "implDate": "2026-07-07",
     "evalEnd": "2026-07-21",
     "title": "CTA rearrangement",
-    "evaluation": "Negative: this test restored the proven feature bullets and spread them across three columns while de-emphasizing the Product Tour CTA — yet the paid trial-intent CTR fell from 13.6% to 11.8% (−14%), and averaged 9.4% in the four weeks after the window with the layout still live (11.4% most recently). Since feature copy on its own had reached 15.0%, the layout and CTA-hierarchy changes plausibly cost around a fifth of the trial-intent CTR. Traffic note: window volumes were comparable (+11%), but the baseline period's traffic was erratic (±50% daily swings while a non-converting Japanese paid wave receded) whereas the window itself was calm — and the joint-query visual (launched one day in) plus the top15 rollout overlap this pattern's numbers.",
+    "evaluation": "Negative: this test restored the proven feature bullets and spread them across three columns while de-emphasizing the Product Tour CTA — yet the paid trial-intent CTR fell from 13.6% to 11.8% (−14%), and has averaged 9.2% in the six weeks after the window with the layout still live (8.5% in the most recent week). Since feature copy on its own had reached 15.0%, the layout and CTA-hierarchy changes plausibly cost around a fifth of the trial-intent CTR. Traffic note: window volumes were comparable (+11%), but the baseline period’s traffic was erratic (±50% daily swings while a non-converting Japanese paid wave receded) whereas the window itself was calm — and the joint-query visual (launched one day in) plus the top15 rollout overlap this pattern’s numbers.",
     "suggestions": "Unwind the layout/CTA-hierarchy changes toward the plain feature-bullet version, or re-run the CTA-hierarchy test in a clean window isolated from content changes. Keep layout tests and content/visual tests on non-overlapping schedules or disjoint page subsets."
   },
   {
@@ -92,7 +92,7 @@
     "implDate": "2026-07-08",
     "evalEnd": "2026-08-02",
     "title": "Joint-query visual",
-    "evaluation": "Winner with a durable effect: the headline paid trial-intent CTR rose from 1.5% to 7.5% (+395%) in the evaluation window. However, the baseline's traffic was extremely erratic (daily paid volumes swinging by multiples during a large non-converting Japanese traffic wave that peaked in the baseline and receded during the evaluation) — excluding that wave, the genuine effect is 7.0% → 12.4% (+77%). The weeks since confirm exactly that level: with the visual still live, a calmer base of ~37 paid sessions/day converts at 12.6%.",
+    "evaluation": "Winner with a durable effect: the headline paid trial-intent CTR rose from 1.5% to 7.5% (+395%) in the evaluation window. However, the baseline’s traffic was extremely erratic (daily paid volumes swinging by multiples during a large non-converting Japanese traffic wave that peaked in the baseline and receded during the evaluation) — excluding that wave, the genuine effect is 7.0% → 12.4% (+77%). With the visual still live, the five weeks since average 11.1% on ~42 paid sessions/day — still clearly above the pre-visual level, though the most recent week reads 8.7%, so the sustained level is drifting toward the lower end of the window’s range and is worth re-checking in a few weeks.",
     "suggestions": "Extend the visual to organic-relevant pages beyond the paid set. Test variants: datasource-specific sample prompts, static vs. lightly animated, and placement above vs. beside the bullets."
   },
   {
@@ -104,8 +104,8 @@
     "implDate": "2026-08-10",
     "evalEnd": "",
     "title": "Visuals for Top15",
-    "evaluation": "Early negative-leaning, but statistically fragile: after the first week, the paid trial-intent CTR on the top15 pages runs at 11.0% vs. 13.1% in the weekday-aligned pre-period (−16%). The base is very thin — ~16 paid sessions/day across 15 pages, with single days as low as 2 sessions — so this reading sits within noise range; it contrasts with the clear lift the same visual produced on the salesforce page. Judge after two full weeks at the earliest.",
-    "suggestions": "Let the experiment run to a full 14-day window, then break the effect down per datasource page — a few pages may drive the aggregate. Verify the event instrumentation on all 15 pages matches the salesforce page, and compare the audience mix of these pages' paid traffic."
+    "evaluation": "Negative over nearly four weeks: the paid trial-intent CTR on the top15 pages runs at 8.8% vs. 12.5% in the weekday-aligned pre-period (−30%). The base remains thin — ~21 paid sessions/day across 15 pages, down from ~29 (−27%), which blurs the comparison — but the window’s length (46 clicks over 25 days, both halves below baseline at 8.3% and 9.2%) makes the direction hard to dismiss: the visuals have not reproduced the lift they delivered on the salesforce page. The change remains live.",
+    "suggestions": "Break the effect down per datasource page — a few weak pages may drag the aggregate; keep the visual only where per-page numbers hold up. If the paid volume decline continues, re-check the SEM targeting for these 15 pages before attributing further CTR movement to the visual."
   },
   {
     "url": "home",
@@ -128,7 +128,9 @@
     "hypothesis": "By removing modal windows and the additional step of copying & pasting the prompts, prompt usage should increase. This will be measured by tracking how clicks on the prompt buttons contribute to free trial clicks and to the overall free trial CTR.",
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217603667306139?focus=true",
     "implDate": "2026-08-20",
-    "evalEnd": ""
+    "evalEnd": "",
+    "evaluation": "Neutral so far: replacing the copy-paste prompt modals with prefilled deep links leaves the homepage’s organic trial-intent CTR at 9.8% vs. 9.4% under the preceding period (+4% — within noise on a stable base of ~102 organic sessions/day). Prompt usage itself is measurable but small: the Claude deep link collected 13 organic clicks in the window against 125 direct free-trial clicks, and the ChatGPT prompt event has recorded no organic clicks yet. The first window half ran stronger than the second (11.3% → 8.6%); the test is still running, so the aggregate may settle either way.",
+    "suggestions": "Verify the ChatGPT deep-link instrumentation — cc_ai_chatgpt_prompt exists but has not fired organically, which may be a wiring issue rather than non-usage. If prompt clicks stay this low relative to direct trial clicks, test making the prompt buttons more prominent or surfacing them to visitors arriving from AI-related searches."
   },
   {
     "url": "ai-connect-datasource",
@@ -137,10 +139,14 @@
     "experiment": "Copied all sections from the /drivers/[datasource]/mcp/ and the .../cloud/ page to the /ai/connect/[datasource]/ page.\n- Natural language querying\n- 3 Pillars (connect, context, control)\n- Role-based query examples\n- Compatible AI clients & agents\n- 4 steps to go live\n- BI/ETL tool integrations\n- Get started free",
     "hypothesis": "With the enriched content on these pages, the SEO ranking should improve and the organic traffic increase. Due to the expanded information, the visitor could feel empowered to start a trial or choose an AI agent and start a trial from the corresponding X+Y page.",
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1217369572512215?focus=true",
-    "secondaryEvents": ["cc_ai_tool"],
+    "secondaryEvents": [
+      "cc_ai_tool"
+    ],
     "secondaryLabel": "X+Y page clicks",
     "implDate": "2026-08-26",
-    "evalEnd": ""
+    "evalEnd": "",
+    "evaluation": "The enriched pages turned this pattern from dormant into a working funnel entry: traffic went from effectively zero (~0–2 sessions/day) to ~272 paid and ~23 organic sessions/day, so no meaningful pre-period exists and this window sets the pattern’s reference level — a 10.4% paid trial-intent CTR (256 clicks in the first nine days). The organic growth from ~1 to ~23 sessions/day is an early positive signal on the SEO dimension of the hypothesis, though search effects need several more weeks to separate from the simultaneous traffic ramp-up. The path to the combination pages is being used: 74 clicks on the X+Y links so far (2.2% of paid sessions) — tracking for these links began with the experiment, so their adoption is measured from zero.",
+    "suggestions": "Watch the organic-sessions trend weekly as the SEO signal — it needs 4–6 weeks to read cleanly. Compare the 10.4% paid CTR against the /drivers/ MCP pages the content came from, and test the X+Y links’ placement and prominence to grow the 2.2% path-to-combination rate."
   },
   {
     "url": "ai-connect-sap-datasource",
@@ -149,9 +155,13 @@
     "experiment": "\"Other SAP Technologies\" button for opening a modal window with 13 more SAP tools CAI can serve.",
     "hypothesis": "Providing an overview with all covered SAP tools increases his confidence in having found the right tool and his willingness to start a trial. This will be measured by the aggregated trial CTR and the usage of the \"Other SAP Technologies\" button.",
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1218009109616291?focus=true",
-    "secondaryEvents": ["cc_ai_sap_tools"],
+    "secondaryEvents": [
+      "cc_ai_sap_tools"
+    ],
     "secondaryLabel": "SAP tools button clicks",
     "implDate": "2026-09-01",
-    "evalEnd": ""
+    "evalEnd": "",
+    "evaluation": "Too early for a verdict: three reliable days at ~11 paid sessions/day sit far inside noise range. Early signs of life only — the SAP pages collected 10 paid trial-intent clicks (a nominal 29.4% that means little at this base), and the new “Other SAP Technologies” button its first 4 clicks. The button’s usage tracking (cc_ai_sap_tools) started with its launch, so adoption is measured from zero.",
+    "suggestions": "Judge after at least two full weeks — and at ~11 sessions/day, expect to need the full window plus post-window before the CTR is readable. If button usage stays low, test its label and placement; ordering the modal’s 13 tools by traffic is a cheap follow-up."
   }
 ]

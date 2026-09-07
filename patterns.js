@@ -17,9 +17,6 @@ const SCOPES = {
   // broad prefix (mid-string wildcards don't push down); regexes trim to /mcp/ + /cloud/
   drivers: { where: "[pagePath] LIKE '/drivers/%'" },
   data_access: { where: "[pagePath] LIKE '/data/access/%'" },
-  // KB articles only (~1.2k paths) — deliberately NOT /kb/tech/, which is a
-  // 200k+-path programmatic matrix that would swamp the fetch and GA4 quota
-  kb_articles: { where: "[pagePath] LIKE '/kb/articles/%'" },
 };
 
 const PATTERNS = [
@@ -145,18 +142,6 @@ const PATTERNS = [
     label: '/data/access/[datasource]-to-[dataconsumer]/',
     scope: 'data_access',
     regex: '^/data/access/[^/]+-to-[^/]+/(\\?.*)?$',
-    events: [],
-  },
-  {
-    id: 'kb-connect-ai-articles',
-    example: 'https://www.cdata.com/kb/articles/connect-ai-chatgpt-start-guide.rst',
-    label: '/kb/articles/ (Connect AI)',
-    scope: 'kb_articles',
-    // Connect AI-related KB articles by slug convention (per Christof, 2026-09-07):
-    // connect-ai-*, mcp-*, know-llm-*, connect-cloud-*. High precision; an oddly
-    // named CAI article can slip through. No cc_ai_* events fire on /kb/ pages,
-    // so CTRs use the all_button_clicks fallback.
-    regex: '^/kb/articles/(connect-ai-|mcp-|know-llm-|connect-cloud-)[^/]+$',
     events: [],
   },
   {

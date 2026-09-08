@@ -17,6 +17,11 @@ const SCOPES = {
   // broad prefix (mid-string wildcards don't push down); regexes trim to /mcp/ + /cloud/
   drivers: { where: "[pagePath] LIKE '/drivers/%'" },
   data_access: { where: "[pagePath] LIKE '/data/access/%'" },
+  // heavy KB scopes — fetched only by runs with --heavy (the Monday task) or an
+  // explicit --only. /kb/tech/ alone spans 200k+ generated paths; pulling it
+  // daily would swamp the shared GA4 quota.
+  kb_articles: { where: "[pagePath] LIKE '/kb/articles/%'", weekly: true },
+  kb_tech: { where: "[pagePath] LIKE '/kb/tech/%'", weekly: true },
 };
 
 const PATTERNS = [
@@ -142,6 +147,19 @@ const PATTERNS = [
     label: '/data/access/[datasource]-to-[dataconsumer]/',
     scope: 'data_access',
     regex: '^/data/access/[^/]+-to-[^/]+/(\\?.*)?$',
+    events: [],
+  },
+  {
+    id: 'kb-connect-ai',
+    example: 'https://www.cdata.com/kb/tech/postgresql-cloud-claude.rst',
+    label: '/kb/ Connect AI pages (updated weekly)',
+    scopes: ['kb_articles', 'kb_tech'],
+    // All Connect AI-related KB pages by slug convention: the hand-written
+    // articles (connect-ai-*, mcp-*, know-llm-*, connect-cloud-*) plus the
+    // generated how-to matrix ([source]-cloud-* / [source]-mcp-*). Both scopes
+    // are weekly-only, so this pattern's numbers refresh Mondays, not daily.
+    // No cc_ai_* events fire on /kb/ pages → all_button_clicks fallback CTR.
+    regex: '^/kb/(articles/(connect-ai-|mcp-|know-llm-|connect-cloud-)[^/]+|tech/[^/]+-(cloud|mcp)-[^/]+)$',
     events: [],
   },
   {

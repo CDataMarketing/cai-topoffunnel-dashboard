@@ -217,13 +217,24 @@ async function main() {
     return;
   }
 
+  // Scope selection: default = light scopes only (daily runs). --heavy adds the
+  // weekly-flagged scopes (the Monday task). --only a,b fetches exactly those
+  // scopes (backfills) — it must cover ALL scopes of a pattern for that
+  // pattern's data to be refreshed (partially fetched patterns are left as-is).
+  const heavy = args.includes('--heavy');
+  const only = arg('--only');
+  const runScopes = Object.keys(SCOPES).filter((id) =>
+    only ? only.split(',').includes(id) : (heavy || !SCOPES[id].weekly));
+  const skipped = Object.keys(SCOPES).filter((id) => !runScopes.includes(id));
+  if (skipped.length) console.log(`Skipping scopes this run: ${skipped.join(', ')}`);
+
   console.log(`Fetching ${startDate} → ${endDate} (${existing ? 'incremental' : 'full backfill'})`);
   await ensureAuth();
 
   const fetched = {};
   for (const [s, e] of weekChunks(startDate, endDate)) {
     console.log(`Chunk ${s} → ${e}`);
-    for (const scopeId of Object.keys(SCOPES)) {
+    for (const scopeId of runScopes) {
       await fetchScope(scopeId, s, e, fetched);
     }
   }
@@ -237,9 +248,12 @@ async function main() {
   }
 
   // Merge: fetched dates replace existing ones wholesale; older dates survive.
+  // Patterns whose scopes were not ALL fetched this run keep their existing
+  // data untouched (e.g. the weekly-only KB pattern on a daily run).
   const data = {};
   for (const p of PATTERNS) {
     data[p.id] = { ...(existing?.data?.[p.id] ?? {}) };
+    if (!p.scopes.every((sc) => runScopes.includes(sc))) continue;
     for (const date of Object.keys(data[p.id])) {
       if (date >= startDate && date <= endDate) delete data[p.id][date];
     }
@@ -249,7 +263,7 @@ async function main() {
   const snapshot = {
     generatedAt: new Date().toISOString(),
     startDate: existing && existing.startDate < startDate ? existing.startDate : startDate,
-    endDate,
+    endDate: existing && existing.endDate > endDate ? existing.endDate : endDate,
     data,
   };
 

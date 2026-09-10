@@ -168,5 +168,15 @@
     "evalEnd": "",
     "evaluation": "Too early for a verdict: three reliable days at ~11 paid sessions/day sit far inside noise range. Early signs of life only — the SAP pages collected 10 paid trial-intent clicks (a nominal 29.4% that means little at this base), and the new “Other SAP Technologies” button its first 4 clicks. The button’s usage tracking (cc_ai_sap_tools) started with its launch, so adoption is measured from zero.",
     "suggestions": "Judge after at least two full weeks — and at ~11 sessions/day, expect to need the full window plus post-window before the CTR is readable. If button usage stays low, test its label and placement; ordering the modal’s 13 tools by traffic is a cheap follow-up."
+  },
+  {
+    "url": "ai-connect-top25-to-claude",
+    "title": "How-it-works",
+    "original": "The X+Y pages show three feature columns above the fold. The “How it works” section contains a distracting MCP deep dive and a misleading 3-step guide.",
+    "experiment": "Replaced the feature columns with a “How it works” section that includes a corrected 3-step guide and a link to the corresponding /kb/tech/[datasource]-cloud-claude/ page. The MCP deep dive remains at the bottom of the page.",
+    "hypothesis": "Visitors to the X+Y pages are looking for “how,” not “whether.” The more prominent “How it works” section with the link to the corresponding /kb/ setup guide should increase the willingness to start a trial. The “How it works” marker, combined with the link to the /kb/ page, also makes it easier for AI agents to find a reliable answer to “how” questions, which should boost trials starting from AI agents.",
+    "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1218319763040258?focus=true",
+    "implDate": "2026-09-17",
+    "evalEnd": ""
   }
 ]

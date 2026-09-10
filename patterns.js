@@ -132,6 +132,16 @@ const PATTERNS = [
     events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
   },
   {
+    id: 'ai-connect-top25-to-claude',
+    example: 'https://www.cdata.com/ai/connect/salesforce-to-claude/',
+    label: '/ai/connect/[top25]-to-claude/',
+    scope: 'ai',
+    // the 25 X+Y-to-Claude pages of the "How-it-works" experiment (per
+    // Christof, 2026-09-10)
+    regex: '^/ai/connect/(salesforce|sql|servicenow|snowflake|workday|qbonline|sapbusinessone|kintone|msplanner|office365|netsuite|jira|dynamics365|shopify|facebook|odoo|mysql|databricks|concur|postgresql|adp|saphana|intacct|sharepoint|acumatica)-to-claude/(\\?.*)?$',
+    events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
+  },
+  {
     id: 'ai-integrations-llm',
     example: 'https://www.cdata.com/ai/integrations/anthropic/',
     label: '/ai/integrations/[LLM]/',

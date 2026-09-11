@@ -104,8 +104,8 @@
     "implDate": "2026-08-10",
     "evalEnd": "",
     "title": "Visuals for Top15",
-    "evaluation": "Negative over nearly four weeks: the paid trial-intent CTR on the top15 pages runs at 8.8% vs. 12.5% in the weekday-aligned pre-period (−30%). The base remains thin — ~21 paid sessions/day across 15 pages, down from ~29 (−27%), which blurs the comparison — but the window’s length (46 clicks over 25 days, both halves below baseline at 8.3% and 9.2%) makes the direction hard to dismiss: the visuals have not reproduced the lift they delivered on the salesforce page. The change remains live.",
-    "suggestions": "Break the effect down per datasource page — a few weak pages may drag the aggregate; keep the visual only where per-page numbers hold up. If the paid volume decline continues, re-check the SEM targeting for these 15 pages before attributing further CTR movement to the visual."
+    "evaluation": "Negative over four weeks: the paid trial-intent CTR on the top15 pages runs at 9.0% vs. 13.1% in the weekday-aligned pre-period (−31%). The base remains thin — ~22 paid sessions/day across 15 pages, down from ~27 (−20%), which blurs the comparison — but the window's length (56 clicks over 29 days, both halves below baseline at 8.7% and 9.2%) makes the direction hard to dismiss: the visuals have not reproduced the lift they delivered on the salesforce page. The most recent two weeks run marginally firmer (9.4% on ~24 paid sessions/day) yet stay well under the pre-period level. The change remains live.",
+    "suggestions": "Break the effect down per datasource page — a few weak pages may drag the aggregate; keep the visual only where per-page numbers hold up. Paid volume has partly recovered in the second half of the window; if CTR does not follow within a further two weeks, roll the visual back on these pages or test a variant closer to the salesforce implementation."
   },
   {
     "url": "home",

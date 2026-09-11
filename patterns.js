@@ -183,6 +183,15 @@ const PATTERNS = [
     events: [],
   },
   {
+    id: 'drivers-ds-powerbi',
+    example: 'https://www.cdata.com/drivers/mysql/powerbi/',
+    label: '/drivers/[datasource]/powerbi/',
+    scope: 'drivers',
+    // the 4 PowerBI connector pages (per Christof, 2026-09-11)
+    regex: '^/drivers/(mysql|office365|qbonline|xero)/powerbi/(\\?.*)?$',
+    events: [],
+  },
+  {
     id: 'drivers-ds-cloud',
     example: 'https://www.cdata.com/drivers/salesforce/cloud/',
     label: '/drivers/[datasource]/cloud/',

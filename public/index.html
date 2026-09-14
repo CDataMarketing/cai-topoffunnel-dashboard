@@ -1291,9 +1291,19 @@ function patternOptionsHtml() {
   const entries = [...groups.entries()].sort((a, b) =>
     GROUP_ORDER.indexOf(a[0]) - GROUP_ORDER.indexOf(b[0]));
   return entries.map(([g, ps]) =>
-    `<optgroup label="${g}">` + ps.map((p) => `<option value="${p.id}">${p.label}</option>`).join('') + '</optgroup>'
+    `<optgroup label="${g}">` + ps.map((p) => `<option value="${p.id}">${optionLabel(p)}</option>`).join('') + '</optgroup>'
   ).join('');
 }
+
+// native <option>s ignore markup, so the [placeholder] parts are italicized via
+// the Unicode math-italic alphabet (digits have no italic form and stay as-is)
+const italChar = (c) =>
+  c === 'h' ? 'ℎ' :
+  c >= 'a' && c <= 'z' ? String.fromCodePoint(0x1D44E + c.charCodeAt(0) - 97) :
+  c >= 'A' && c <= 'Z' ? String.fromCodePoint(0x1D434 + c.charCodeAt(0) - 65) : c;
+const optionLabel = (p) => p.label
+  .replace(' (main page)', '')
+  .replace(/\[([^\]]+)\]/g, (_, s) => '[' + [...s].map(italChar).join('') + ']');
 
 async function load() {
   // Standalone artifact build: data is embedded, no server needed for viewing.

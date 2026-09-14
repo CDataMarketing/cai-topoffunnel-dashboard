@@ -1267,10 +1267,14 @@ const API = window.__EMBEDDED__ ? 'http://localhost:3010' : '';
 // group the pattern list for dropdowns; the cross-section aggregates go into
 // their own section at the bottom
 const AGGREGATE_IDS = new Set(['connect-ai-all', 'ai-all']);
-const GROUP_ORDER = ['General', '/ai/ pages', '/drivers/ pages', 'Misc pages', 'Aggregates'];
+// hand-picked page sets (experiment cohorts) vs. the generic URL patterns
+const PAGE_SET_IDS = new Set(['ai-connect-sap-datasource', 'ai-connect-sf-to-claude',
+  'ai-connect-top15-to-claude', 'ai-connect-top16-to-claude', 'ai-connect-top25-to-claude']);
+const GROUP_ORDER = ['General', '/ai/ URL patterns', 'Selected page sets', '/drivers/ pages', 'Misc pages', 'Aggregates'];
 const patternGroup = (p) =>
   AGGREGATE_IDS.has(p.id) ? 'Aggregates' :
-  p.id === 'ai' || p.id.startsWith('ai-') ? '/ai/ pages' :
+  PAGE_SET_IDS.has(p.id) ? 'Selected page sets' :
+  p.id === 'ai' || p.id.startsWith('ai-') ? '/ai/ URL patterns' :
   p.id.startsWith('drivers') ? '/drivers/ pages' :
   p.id === 'home' ? 'General' : 'Misc pages';
 

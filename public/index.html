@@ -354,10 +354,7 @@ function metricRows(pattern, days) {
   const rest = names.filter((n) => n !== 'all_button_clicks' && n !== 'cc_ai_free_trial' && !agentEvents.includes(n))
     .sort((a, b) => totals[b] - totals[a] || a.localeCompare(b));
 
-  // 2a) all_button_clicks leads (outside CTR semantics — neutral row style)
-  if (names.includes('all_button_clicks')) eventBlock('all_button_clicks', ['all_button_clicks'], 'evt');
-
-  // 2b) trial-intent block: cc_ai_free_trial + all AI-agent clicks combined
+  // 2a) trial-intent block: cc_ai_free_trial + all AI-agent clicks combined
   // (same metric as the CTR trend). The agent breakdown is collapsed beneath
   // it and expands via the ⊞ agents toggle.
   if (trialSet.length) {
@@ -376,8 +373,11 @@ function metricRows(pattern, days) {
     }
   }
 
-  // 2c) remaining events (product tour, main page, …) by volume
+  // 2b) remaining events (product tour, main page, …) by volume
   for (const ev of rest) eventBlock(ev, [ev], 'evt');
+
+  // 2c) all_button_clicks last (outside CTR semantics — neutral row style)
+  if (names.includes('all_button_clicks')) eventBlock('all_button_clicks', ['all_button_clicks'], 'evt');
 
   // (no pattern-level totals/CTR block — per-event CTR sub-rows cover it)
   return rows;

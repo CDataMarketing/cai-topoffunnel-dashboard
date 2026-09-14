@@ -1267,10 +1267,12 @@ const API = window.__EMBEDDED__ ? 'http://localhost:3010' : '';
 // group the pattern list for dropdowns; the cross-section aggregates go into
 // their own section at the bottom
 const AGGREGATE_IDS = new Set(['connect-ai-all', 'ai-all']);
+const GROUP_ORDER = ['General', '/ai/ pages', '/drivers/ pages', 'Misc pages', 'Aggregates'];
 const patternGroup = (p) =>
   AGGREGATE_IDS.has(p.id) ? 'Aggregates' :
-  p.id.startsWith('ai-connect') ? '/ai/connect/ pages' :
-  p.id.startsWith('drivers') ? '/drivers/ pages' : 'General';
+  p.id === 'ai' || p.id.startsWith('ai-') ? '/ai/ pages' :
+  p.id.startsWith('drivers') ? '/drivers/ pages' :
+  p.id === 'home' ? 'General' : 'Misc pages';
 
 function patternOptionsHtml() {
   const groups = new Map();
@@ -1279,8 +1281,11 @@ function patternOptionsHtml() {
     if (!groups.has(g)) groups.set(g, []);
     groups.get(g).push(p);
   }
+  // powerbi leads the /drivers/ section
+  groups.get('/drivers/ pages')?.sort((a, b) =>
+    (b.id === 'drivers-ds-powerbi') - (a.id === 'drivers-ds-powerbi'));
   const entries = [...groups.entries()].sort((a, b) =>
-    (a[0] === 'Aggregates') - (b[0] === 'Aggregates')); // Aggregates last, rest in pattern order
+    GROUP_ORDER.indexOf(a[0]) - GROUP_ORDER.indexOf(b[0]));
   return entries.map(([g, ps]) =>
     `<optgroup label="${g}">` + ps.map((p) => `<option value="${p.id}">${p.label}</option>`).join('') + '</optgroup>'
   ).join('');

@@ -99,15 +99,18 @@
   tr.sess td { background: var(--sess-bg); }
   /* Salesforce-sourced trial rows (count + CVR): highlighted as a block —
      stronger Resolve tint + accent bar on the row label */
-  tr.trials td { background: #dbe4f0; font-weight: 600; }
-  tr.trials th { box-shadow: inset 3px 0 0 var(--accent); }
-  tr.evctr.trials td { background: #e8eef7; font-weight: 400; } /* CVR sub-rows: lighter tint */
+  /* gold like the trials line in the chart */
+  tr.trials td { background: var(--ctr-bg); font-weight: 600; }
+  tr.trials th { box-shadow: inset 3px 0 0 #ccb700; }
+  tr.evctr.trials td { background: #fffde6; font-weight: 400; } /* CVR sub-rows: lighter tint */
   tr.evt td { background: var(--evt-bg); }
   tr.extra td { background: var(--extra-bg); }
   tr.ctr td { background: var(--ctr-bg); font-weight: 600; }
   /* highlighted key-metric block: free trial clicks + its CTR sub-row */
-  tr.hl td { background: var(--ctr-bg); font-weight: 600; }
-  tr.evctr.hl td { background: var(--ctr-bg); }
+  /* blue like the CTR line in the chart (free-trial clicks = the CTR metric) */
+  tr.hl td { background: #dbe4f0; font-weight: 600; }
+  tr.hl th { box-shadow: inset 3px 0 0 var(--accent); }
+  tr.evctr.hl td { background: #e8eef7; }
   tr.evctr td, tr.evctr th { font-size: 9.5px; font-style: italic; color: var(--muted); padding-top: 0; padding-bottom: 2px; }
   tr.evctr td { background: var(--evt-bg); }
   tr.evctr.extra td { background: var(--extra-bg); }

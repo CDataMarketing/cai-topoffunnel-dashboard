@@ -43,13 +43,13 @@ const PATTERNS = [
   },
   {
     // aggregate across every Connect AI funnel page: all of /ai/* plus the
-    // driver MCP + Cloud pages — one traffic-mix/CTR view of everything that
-    // links to the Connect AI free trial and/or product tour
+    // driver MCP + Cloud + PowerBI pages — one traffic-mix/CTR view of
+    // everything that links to the Connect AI free trial and/or product tour
     id: 'connect-ai-all',
     example: 'https://www.cdata.com/ai/',
-    label: 'All Connect AI pages (/ai/* + /drivers/[ds]/mcp|cloud/)',
+    label: 'All Connect AI pages (/ai/* + /drivers/[ds]/mcp|cloud|powerbi/)',
     scopes: ['ai', 'drivers'],
-    regex: '^/(ai/.*|drivers/[^/]+/(mcp|cloud)/(\\?.*)?)$',
+    regex: '^/(ai/.*|drivers/(mysql|office365|qbonline|xero)/powerbi/(\\?.*)?|drivers/[^/]+/(mcp|cloud)/(\\?.*)?)$',
     events: [],
   },
   {

@@ -162,15 +162,15 @@
 <header>
   <h1>Marketing Cockpit</h1>
   <nav id="topTabs">
-    <button data-view="tl" class="active">Experiment Timeline</button>
-    <button data-view="ctr">CAI Traffic &amp; CTR</button>
+    <button data-view="ctr" class="active">CAI Traffic &amp; CTR</button>
+    <button data-view="tl">Experiment Timeline</button>
     <button data-view="exp">Website Experiments</button>
   </nav>
   <span class="meta" id="rangeMeta"></span>
   <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
 </header>
 
-<div id="ctrView" hidden>
+<div id="ctrView">
 <div id="patternBar">
   <label>URL pattern:
     <select id="patternSelect"></select>
@@ -210,7 +210,7 @@
   <div class="tableWrap" id="expWrap" style="max-height:none"></div>
 </div>
 
-<div id="tlView">
+<div id="tlView" hidden>
   <div id="tlBar">
     <label>URL pattern:
       <select id="tlFilter"></select>
@@ -1264,8 +1264,11 @@ let ctrBucket = 'organic'; // traffic type for the CAI tab's development chart
 // In the standalone artifact, API calls go to the local dashboard server.
 const API = window.__EMBEDDED__ ? 'http://localhost:3010' : '';
 
-// group the pattern list for dropdowns
+// group the pattern list for dropdowns; the cross-section aggregates go into
+// their own section at the bottom
+const AGGREGATE_IDS = new Set(['connect-ai-all', 'ai-all']);
 const patternGroup = (p) =>
+  AGGREGATE_IDS.has(p.id) ? 'Aggregates' :
   p.id.startsWith('ai-connect') ? '/ai/connect/ pages' :
   p.id.startsWith('drivers') ? '/drivers/ pages' : 'General';
 
@@ -1276,7 +1279,9 @@ function patternOptionsHtml() {
     if (!groups.has(g)) groups.set(g, []);
     groups.get(g).push(p);
   }
-  return [...groups.entries()].map(([g, ps]) =>
+  const entries = [...groups.entries()].sort((a, b) =>
+    (a[0] === 'Aggregates') - (b[0] === 'Aggregates')); // Aggregates last, rest in pattern order
+  return entries.map(([g, ps]) =>
     `<optgroup label="${g}">` + ps.map((p) => `<option value="${p.id}">${p.label}</option>`).join('') + '</optgroup>'
   ).join('');
 }

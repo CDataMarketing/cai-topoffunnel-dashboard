@@ -267,9 +267,24 @@ async function main() {
     data,
   };
 
+  // carry the Salesforce trials section over — it's maintained by
+  // fetch-trials.js and refreshed below, independent of the GA4 merges
+  if (existing?.trials) {
+    snapshot.trials = existing.trials;
+    snapshot.trialsUpdatedAt = existing.trialsUpdatedAt;
+  }
+
   fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
   fs.writeFileSync(OUT_FILE, JSON.stringify(snapshot));
   console.log(`Wrote ${OUT_FILE} (${snapshot.startDate} → ${snapshot.endDate})`);
+
+  // started trials from Salesforce (Entry_Attribution__c) — non-fatal: a
+  // Salesforce hiccup must not fail the GA4 refresh, old trials stay in place
+  try {
+    await require('./fetch-trials').updateSnapshot();
+  } catch (err) {
+    console.error('Trials refresh failed (keeping previous trials):', err.message);
+  }
 
   require('./export').build(); // keep the standalone HTML artifact in sync
 }

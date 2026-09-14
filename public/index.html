@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Connect AI CTR Dashboard</title>
+<title>CAI Top-of-Funnel Dashboard & Web Experiments</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,18 +89,19 @@
   thead th.corner { left: 0; z-index: 4; background: var(--head-bg); }
   /* box-shadow instead of border: takes no layout space, so fixed-grid tables stay pixel-aligned */
   td.weekstart, th.weekstart { box-shadow: inset 2px 0 0 var(--border-strong); }
-  /* weekend + running-experiment tints as overlays, so row backgrounds shine through */
+  /* weekend tint as an overlay, so row backgrounds shine through */
   td.wknd, th.wknd { box-shadow: inset 0 0 0 999px rgba(21, 21, 28, .05); }
-  td.live, th.live { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .22); }
-  td.wknd.live, th.wknd.live { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .22), inset 0 0 0 999px rgba(21, 21, 28, .05); }
-  td.weekstart.live, th.weekstart.live { box-shadow: inset 2px 0 0 var(--border-strong), inset 0 0 0 999px rgba(255, 229, 0, .22); }
-  .liveHint { background: rgba(255, 229, 0, .22); padding: 1px 6px; border-radius: 4px; }
   .grpToggle { border: none; background: none; cursor: pointer; font-size: 9px; padding: 0 4px 0 0; color: var(--muted); }
   .grpToggle:hover { color: var(--accent); }
   .agentToggle { border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface); cursor: pointer; font-size: 9px; padding: 0 5px; margin-left: 6px; color: var(--muted); }
   .agentToggle:hover { color: var(--accent); border-color: var(--accent); }
   tr.subEvt th { padding-left: 26px; }
   tr.sess td { background: var(--sess-bg); }
+  /* Salesforce-sourced trial rows (count + CVR): highlighted as a block —
+     stronger Resolve tint + accent bar on the row label */
+  tr.trials td { background: #dbe4f0; font-weight: 600; }
+  tr.trials th { box-shadow: inset 3px 0 0 var(--accent); }
+  tr.evctr.trials td { background: #e8eef7; font-weight: 400; } /* CVR sub-rows: lighter tint */
   tr.evt td { background: var(--evt-bg); }
   tr.extra td { background: var(--extra-bg); }
   tr.ctr td { background: var(--ctr-bg); font-weight: 600; }
@@ -162,7 +163,7 @@
 <header>
   <h1>Marketing Cockpit</h1>
   <nav id="topTabs">
-    <button data-view="ctr" class="active">CAI Traffic &amp; CTR</button>
+    <button data-view="ctr" class="active">CAI Traffic, CTR &amp; Trials</button>
     <button data-view="tl">Experiment Timeline</button>
     <button data-view="exp">Website Experiments</button>
   </nav>
@@ -332,6 +333,47 @@ function metricRows(pattern, days) {
     push(`Engaged Sessions — ${BUCKET_LABEL[b]}`, 'sess', (dates) => fmtInt(sessSum(days, dates, b)), i === 3);
   });
 
+  // 1b) started trials, attributed via the Salesforce lead field
+  // Entry_Attribution__c (entry page of the Connect AI signup). Lead-level
+  // data — no GA4 traffic-type split, so the row ignores the Traffic selector.
+  // shown for every pattern as soon as any trials data exists — a pattern
+  // without matching signups shows 0 (tracked days) / "–" (pre-tracking).
+  // Compact by default (All); the ▸ toggle expands the paid/organic/direct
+  // split. Trial buckets come from the Salesforce Source Category (mapped
+  // like GA4 channel groups: Referral/AI Referral/unclassified count in All
+  // only); sessions come from GA4 — independent systems, so per-bucket CVRs
+  // are approximations.
+  const trials = PAYLOAD.snapshot?.trials ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
+  if (trials) {
+    const tStart = PAYLOAD.snapshot.trialsStart || '';
+    const trackedOf = (dates) => (tStart ? dates.filter((d) => d >= tStart) : dates);
+    const trialSum = (dates, b) => dates.reduce((a, d) => a + (trials[d]?.[b] ?? 0), 0);
+    const tGrp = 'Started Trials';
+    const tExpanded = expandedGroups.has(tGrp);
+    const tBuckets = tExpanded ? BUCKETS : ['all'];
+    const tToggle = `<button class="grpToggle" data-group="${tGrp}" title="${tExpanded ? 'Hide' : 'Show'} the paid/organic/direct split (trial source from the Salesforce Source Category)">${tExpanded ? '▾' : '▸'}</button>`;
+    tBuckets.forEach((b, i) => {
+      const srcNote = b === 'all'
+        ? 'All trials, incl. sources outside paid/organic/direct (Referral, AI Referral, Events, unclassified).'
+        : `Trials whose Salesforce Source Category maps to ${BUCKET_LABEL[b]} traffic.`;
+      curTip = `Started trials whose signup entry page matches this URL pattern — from the Salesforce lead field Entry_Attribution__c (leads with a Connect AI account). ${srcNote}${tStart ? ` Tracked since ${tStart} — earlier days show “–”.` : ''}`;
+      push(`${b === 'all' ? tToggle : ''}Started Trials <small>(Entry Attribution)</small> — ${BUCKET_LABEL[b]}`, 'trials',
+        (dates) => {
+          const tracked = trackedOf(dates);
+          if (!tracked.length) return '-'; // before tracking went live: no data, not zero
+          return fmtInt(trialSum(tracked, b));
+        }, false);
+      curTip = `Trial conversion rate: ${BUCKET_LABEL[b]} trials ÷ ${BUCKET_LABEL[b]} engaged sessions${tStart ? ` (tracked days since ${tStart} only)` : ''}. Trial source from Salesforce, sessions from GA4 — independent classifications, treat per-channel CVRs as approximations.`;
+      push(`<small><em>↳ CVR — ${BUCKET_LABEL[b]}</em></small>`, 'evctr trials',
+        (dates) => {
+          const tracked = trackedOf(dates);
+          if (!tracked.length) return '-';
+          const s = sessSum(days, tracked, b);
+          return s ? ((trialSum(tracked, b) / s) * 100).toFixed(1) + '%' : '-';
+        }, i === tBuckets.length - 1);
+    });
+  }
+
   // 2) each event separately: amount row + small italic CTR sub-row per bucket.
   // Compact by default: only the "All" rows show; the per-channel breakdown
   // expands via the ▸ toggle on the event's first row.
@@ -401,14 +443,14 @@ function buildTable(pattern, days, columns, weekHeader, fixedGrid) {
       weekHeader.map((w) => `<th colspan="${w.span}" class="weekstart">${w.label}</th>`).join('') + '</tr>';
   }
   html += '<tr class="days"><th class="corner">Metric</th>' +
-    columns.map((c) => `<th class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}${c.live ? ' live' : ''}">${c.label}</th>`).join('') +
+    columns.map((c) => `<th class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}">${c.label}</th>`).join('') +
     '</tr></thead><tbody>';
 
   for (const r of metricRows(pattern, days)) {
     html += `<tr class="${r.cls}${r.blockend ? ' blockend' : ''}"><th>${r.label}</th>`;
     for (const c of columns) {
       const v = r.fn(c.dates);
-      html += `<td class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}${c.live ? ' live' : ''}` +
+      html += `<td class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}` +
         `${v === '0' || v === '-' ? ' zero' : ''}" title="${r.tip}">${v}</td>`;
     }
     html += '</tr>';
@@ -492,14 +534,15 @@ function render() {
     (pattern.excludeRegex ? ` minus <code>${pattern.excludeRegex}</code>` : '') +
     (pattern.example ? ` &nbsp;·&nbsp; <a class="patLink" href="${pattern.example}" target="_blank">example page ↗</a>` : '') +
     ' &nbsp;·&nbsp; Sessions exclude Direct traffic from China & Singapore' +
-    ((PAYLOAD.experiments || []).some((x) => x.url === pattern.id && x.implDate && !x.evalEnd)
-      ? ' &nbsp;·&nbsp; <span class="liveHint">blue-tinted days = running experiment window</span>' : '');
+    (PAYLOAD.snapshot?.trials
+      ? ` &nbsp;·&nbsp; <strong>Started Trials</strong>: Connect AI signups whose entry page matches this pattern, from the Salesforce lead field <code>Entry_Attribution__c</code>; <strong>CVR</strong> = trials ÷ engaged sessions per traffic type (trial channel from the Salesforce Source Category — Referral/AI Referral/unclassified count in All only; sessions from GA4, so per-channel CVRs are approximations${PAYLOAD.snapshot.trialsStart ? `; tracked since ${fmtShort(PAYLOAD.snapshot.trialsStart)}${PAYLOAD.snapshot.trialsStart.slice(0, 4)}, earlier days show “–”` : ''})` : '') +
+    '';
 
   // CTR development chart above the tables (same chart as the timeline tab,
   // without evaluation blocks; traffic type from the dropdown)
   const chartExps = (PAYLOAD.experiments || []).filter((x) => x.url === pattern.id && x.implDate)
     .sort((a, b) => a.implDate.localeCompare(b.implDate));
-  $('ctrChart').innerHTML = timelineChart(pattern, chartExps, dates, { bucket: ctrBucket, showEvals: false, showBands: false, compact: true });
+  $('ctrChart').innerHTML = timelineChart(pattern, chartExps, dates, { bucket: ctrBucket, showEvals: false, showBands: false, compact: true, showTrials: true });
 
   // group consecutive dates into Mon–Sun weeks
   const weeks = [];
@@ -509,14 +552,10 @@ function render() {
     else last.dates.push(date);
   }
 
-  // days inside a *running* experiment's evaluation window get a blue tint
-  const runningDates = new Set();
-  for (const x of (PAYLOAD.experiments || []).filter((x) => x.url === pattern.id && x.implDate && !x.evalEnd)) {
-    for (const d of dateList(evalStart(x.implDate), snapshot.endDate)) runningDates.add(d);
-  }
-
+  // (running-experiment day tint removed 2026-09-14 per Christof — the
+  // evaluation-period tables below carry the experiment windows instead)
   const dailyCols = weeks.flatMap((w) =>
-    w.dates.map((d, i) => ({ label: fmtDay(d), dates: [d], weekstart: i === 0, wknd: isWeekend(d), live: runningDates.has(d) })));
+    w.dates.map((d, i) => ({ label: fmtDay(d), dates: [d], weekstart: i === 0, wknd: isWeekend(d) })));
   const weekHeader = weeks.map((w) => ({ label: weekLabel(w), span: w.dates.length }));
   $('dailyWrap').innerHTML = buildTable(pattern, days, dailyCols, weekHeader, true);
 
@@ -665,10 +704,10 @@ for (const btn of document.querySelectorAll('#topTabs button')) {
     $('tlView').hidden = btn.dataset.view !== 'tl';
     if (btn.dataset.view === 'tl') sizeTimelineLanes();
     if (btn.dataset.view === 'ctr') {
-      // per spec: the CAI tab always opens on the all-Connect-AI aggregate, organic traffic
-      currentPatternId = 'connect-ai-all';
-      ctrBucket = 'organic';
-      $('ctrBucketSel').value = 'organic';
+      // per spec: the CAI tab always opens on the homepage, all traffic
+      currentPatternId = 'home';
+      ctrBucket = 'all';
+      $('ctrBucketSel').value = 'all';
       render();
     }
   });
@@ -1116,6 +1155,23 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   const n = dates.length;
   const sess = dates.map((d) => days[d]?.s[bucket] ?? 0);
   const evts = dates.map((d) => eventSum(days, [d], evNames, bucket));
+  // started-trials line (CAI tab chart only): 7-day rolling sum on its own
+  // right-hand scale, same traffic bucket as the CTR line ("–" era = no line)
+  const tData = opts.showTrials ? PAYLOAD.snapshot.trials?.[pattern.id] : null;
+  // trials: daily counts for the chosen bucket (null before tracking start)
+  const tStart = PAYLOAD.snapshot.trialsStart || '';
+  const tDaily = tData
+    ? dates.map((d) => (tStart && d < tStart ? null : (tData[d]?.[bucket] ?? 0)))
+    : null;
+  const tRoll = tData
+    ? dates.map((_, i) => { // trailing 7-day sum (trials per week)
+        let sum = 0, seen = false;
+        for (let j = Math.max(0, i - 6); j <= i; j++) {
+          if (tDaily[j] !== null) { sum += tDaily[j]; seen = true; }
+        }
+        return seen ? sum : null;
+      })
+    : null;
   const daily = dates.map((_, i) => (sess[i] ? (evts[i] / sess[i]) * 100 : null));
   const roll = dates.map((_, i) => { // trailing 7-day volume-weighted CTR
     let s = 0, e = 0;
@@ -1129,7 +1185,8 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   // so their in-SVG text takes smaller viewBox sizes
   const fsAxis = compact ? 9.5 : 8;
   const fsTitle = compact ? 10 : 8.5;
-  const W = 1000, X0 = 46, X1 = 988;
+  // compact (CAI) charts carry the CTR/Trials legend words right of the plot
+  const W = compact ? 1050 : 1000, X0 = 46, X1 = tData ? 962 : 988; // trials axis needs right margin
   const CY0 = compact ? 10 : 20, CY1 = compact ? 100 : 186;   // CTR pane
   const VY0 = compact ? 112 : 206, VY1 = compact ? 158 : 256; // volume pane
   const VH = compact ? 172 : 272;                             // viewBox height
@@ -1229,16 +1286,49 @@ function timelineChart(pattern, exps, dates, opts = {}) {
     pen = true;
   });
   s += `<path d="${path}" fill="none" stroke="#002660" stroke-width="2" stroke-linejoin="round"/>`;
-  // "CTR" tag in line color at the end of the line (compact CAI chart)
+  // "CTR" legend word right of the plot, at the height of the line's last point
+  // (compact CAI chart; emitted after the trials block so the words can dodge each other)
+  let legendCtrY = null, legendTrialsY = null;
   if (compact) {
     const li = roll.reduce((a, v, i) => (v === null ? a : i), -1);
-    if (li >= 0) s += `<text x="${x(li)}" y="${Math.max(y(roll[li]) - 6, CY0 + 8)}" text-anchor="end" font-size="11" font-weight="600" fill="#002660">CTR</text>`;
+    if (li >= 0) legendCtrY = Math.min(Math.max(y(roll[li]) + 3.5, CY0 + 9), CY1 - 1);
+  }
+
+  // started-trials line: 7-day rolling sum, gold, right-hand scale
+  if (tRoll && tRoll.some((v) => v !== null)) {
+    const tMax = Math.max(...tRoll.filter((v) => v !== null), 1);
+    const tDom = Math.max(Math.ceil(tMax * 1.35), 5);
+    const yt = (v) => CY1 - (Math.min(v, tDom) / tDom) * (CY1 - CY0);
+    for (let t = 0; t <= 4; t++) { // right axis labels on the shared gridlines
+      const v = Math.round((tDom / 4) * t);
+      s += `<text x="${X1 + 5}" y="${yt(v) + 3}" font-size="${fsAxis}" fill="#a89700">${fmtInt(v)}</text>`;
+    }
+    let tPath = '', tPen = false;
+    tRoll.forEach((v, i) => {
+      if (v === null) { tPen = false; return; }
+      tPath += `${tPen ? 'L' : 'M'}${x(i).toFixed(1)} ${yt(v).toFixed(1)}`;
+      tPen = true;
+    });
+    s += `<path d="${tPath}" fill="none" stroke="#ccb700" stroke-width="2" stroke-linejoin="round"/>`;
+    const tli = tRoll.reduce((a, v, i) => (v === null ? a : i), -1);
+    if (tli >= 0) legendTrialsY = Math.min(Math.max(yt(tRoll[tli]) + 3.5, CY0 + 9), CY1 - 1);
+  }
+  // legend words right of the plot (past the gold right axis when one is drawn);
+  // if the two last points sit at the same height, the Trials word steps aside
+  if (legendCtrY !== null || legendTrialsY !== null) {
+    const lx = X1 + (tData ? 28 : 6);
+    if (legendCtrY !== null && legendTrialsY !== null && Math.abs(legendCtrY - legendTrialsY) < 11) {
+      legendTrialsY = legendTrialsY >= legendCtrY ? legendCtrY + 11 : Math.max(legendCtrY - 11, CY0 + 9);
+    }
+    if (legendCtrY !== null) s += `<text x="${lx}" y="${legendCtrY}" font-size="11" font-weight="600" fill="#002660">CTR</text>`;
+    if (legendTrialsY !== null) s += `<text x="${lx}" y="${legendTrialsY}" font-size="11" font-weight="600" fill="#a89700">Trials</text>`;
   }
 
   // per-day hover targets (native tooltips)
   const colW = (X1 - X0) / Math.max(n - 1, 1);
   dates.forEach((d, i) => {
-    const t = `${d}\nCTR: ${daily[i] === null ? '–' : daily[i].toFixed(1) + '%'} · 7-day: ${roll[i] === null ? '–' : roll[i].toFixed(1) + '%'}\n${fmtInt(sess[i])} engaged sessions (${bucketLabel.toLowerCase()})`;
+    const t = `${d}\nCTR: ${daily[i] === null ? '–' : daily[i].toFixed(1) + '%'} · 7-day: ${roll[i] === null ? '–' : roll[i].toFixed(1) + '%'}\n${fmtInt(sess[i])} engaged sessions (${bucketLabel.toLowerCase()})` +
+      (tRoll ? `\nTrials: ${tDaily[i] === null ? '– (not yet tracked)' : fmtInt(tDaily[i])} · 7-day sum: ${tRoll[i] === null ? '–' : fmtInt(tRoll[i])}` : '');
     s += `<rect x="${x(i) - colW / 2}" y="${CY0}" width="${colW}" height="${VY1 - CY0}" fill="transparent"><title>${esc(t)}</title></rect>`;
   });
   s += bandTitles.join('');
@@ -1255,11 +1345,13 @@ function timelineChart(pattern, exps, dates, opts = {}) {
     ? `<a class="patLink" href="${pattern.example}" target="_blank" title="Open an example page: ${pattern.example}">${esc(pattern.label)} ↗</a>`
     : esc(pattern.label);
   return `<div class="tlChart"><h3>${heading}</h3>` +
-    `<span class="meta">${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages — based on all_button_clicks)' : 'Trial-intent CTR'} · ${bucketLabel} traffic · 7-day volume-weighted line${compact ? '' : ', single-day dots'}</span>${s}${evalsHtml}</div>`;
+    `<span class="meta">${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages — based on all_button_clicks)' : 'Trial-intent CTR'} · ${bucketLabel} traffic · 7-day volume-weighted line${compact ? '' : ', single-day dots'}` +
+    (tRoll ? ` · <span style="color:#a89700;font-weight:600">gold</span> = started trials (Entry Attribution, ${bucketLabel.toLowerCase()}${bucket === 'all' ? '' : ' per Salesforce Source Category'}), 7-day sum on the right scale` : '') +
+    `</span>${s}${evalsHtml}</div>`;
 }
 
-let currentPatternId = 'connect-ai-all'; // CAI tab default: all Connect AI pages
-let ctrBucket = 'organic'; // traffic type for the CAI tab's development chart
+let currentPatternId = 'home'; // CAI tab default: homepage
+let ctrBucket = 'all'; // traffic type for the CAI tab's development chart
 
 // In the standalone artifact, API calls go to the local dashboard server.
 const API = window.__EMBEDDED__ ? 'http://localhost:3010' : '';
@@ -1323,6 +1415,7 @@ async function load() {
   }
   const sel = $('patternSelect');
   sel.innerHTML = patternOptionsHtml();
+  $('ctrBucketSel').value = ctrBucket; // initial view: All traffic
   sel.onchange = () => {
     currentPatternId = sel.value;
     render();

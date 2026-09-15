@@ -151,7 +151,7 @@
   #attrWrap { max-width: 100%; margin-top: 14px; }
   #attrChart svg { width: 100%; height: auto; }
   #attrView table { border-collapse: collapse; }
-  #attrView th, #attrView td { padding: 3px 7px; text-align: right; border: 1px solid var(--border); }
+  #attrView th, #attrView td { padding: 3px 7px; text-align: center; border: 1px solid var(--border); }
   #attrView th:first-child { text-align: left; max-width: 200px; white-space: normal; overflow-wrap: break-word; }
   #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 48px; text-align: center; }
   #attrView thead th.attrSub { background: var(--label-bg); font-size: 9px; color: var(--muted); min-width: 46px; }
@@ -1443,8 +1443,8 @@ const ATTR_CATS = [
   ['organic', 'Organic traffic', '#dbe4f0'],
   ['direct', 'Direct traffic', '#b5b9bc'],
   ['web-other', 'Other web sources (Referral, AI Referral, Events, unclassified)', '#f1eee9'],
-  ['app-mcp', 'app-mcp (Claude app library)', '#ccb700'],
-  ['app-gpt', 'app-gpt (ChatGPT app)', '#ffe500'],
+  ['app-mcp', 'Claude App', '#ccb700'],
+  ['app-gpt', 'ChatGPT App', '#ffe500'],
 ];
 const TRAFFIC_CATS = new Set(['paid', 'organic', 'direct', 'web-other']);
 // category -> GA4 session bucket of the all-Connect-AI aggregate, for the
@@ -1476,7 +1476,9 @@ function renderAttribution() {
       const ds = dd.toISOString().slice(0, 10);
       if (ds >= start) dates.push(ds);
     }
-    weeks.push({ from, to, dates, partial: to > lastDate });
+    // partial at either end: cut off by the tracking start (e.g. CW 36 starts
+    // 31.08 but tracking begins 01.09) or still running past the newest lead
+    weeks.push({ from, to, dates, partial: to > lastDate || from < start });
   }
   // per-week sums per category + engaged sessions (all Connect AI pages, All)
   const allDays = PAYLOAD.snapshot.data['connect-ai-all'] || {};

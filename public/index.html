@@ -336,7 +336,7 @@ function metricRows(pattern, days) {
     push(`Engaged Sessions — ${BUCKET_LABEL[b]}`, 'sess', (dates) => fmtInt(sessSum(days, dates, b)), i === 3);
   });
 
-  // 1b) started trials, attributed via the Salesforce lead field
+  // 3) started trials, attributed via the Salesforce lead field
   // Entry_Attribution__c (entry page of the Connect AI signup). Lead-level
   // data — no GA4 traffic-type split, so the row ignores the Traffic selector.
   // shown for every pattern as soon as any trials data exists — a pattern
@@ -346,8 +346,10 @@ function metricRows(pattern, days) {
   // like GA4 channel groups: Referral/AI Referral/unclassified count in All
   // only); sessions come from GA4 — independent systems, so per-bucket CVRs
   // are approximations.
+  // (rendered AFTER the free-trial-clicks block — funnel order traffic → clicks → trials)
   const trials = PAYLOAD.snapshot?.trials ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
-  if (trials) {
+  const pushTrialsRows = () => {
+    if (!trials) return;
     const tStart = PAYLOAD.snapshot.trialsStart || '';
     const trackedOf = (dates) => (tStart ? dates.filter((d) => d >= tStart) : dates);
     const trialSum = (dates, b) => dates.reduce((a, d) => a + (trials[d]?.[b] ?? 0), 0);
@@ -375,7 +377,7 @@ function metricRows(pattern, days) {
           return s ? ((trialSum(tracked, b) / s) * 100).toFixed(1) + '%' : '-';
         }, i === tBuckets.length - 1);
     });
-  }
+  };
 
   // 2) each event separately: amount row + small italic CTR sub-row per bucket.
   // Compact by default: only the "All" rows show; the per-channel breakdown
@@ -418,10 +420,13 @@ function metricRows(pattern, days) {
     }
   }
 
-  // 2b) remaining events (product tour, main page, …) by volume
+  // 3) started trials right below the clicks — funnel order traffic → clicks (CTR) → trials (CVR)
+  pushTrialsRows();
+
+  // 4) remaining (non-trial-related) events by volume, below the trial rows
   for (const ev of rest) eventBlock(ev, [ev], 'evt');
 
-  // 2c) all_button_clicks last (outside CTR semantics — neutral row style)
+  // 5) all_button_clicks last (outside CTR semantics — neutral row style)
   if (names.includes('all_button_clicks')) eventBlock('all_button_clicks', ['all_button_clicks'], 'evt');
 
   // (no pattern-level totals/CTR block — per-event CTR sub-rows cover it)

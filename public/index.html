@@ -1207,9 +1207,9 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   const W = 1000;
   const X0 = compact ? 0 : 46;
   const X1 = compact ? W : (tData ? 962 : 988); // full charts: trials axis needs right margin
-  const CY0 = compact ? 16 : 20, CY1 = compact ? 100 : 186;   // CTR pane (compact leaves headroom for the axis titles)
+  const CY0 = compact ? 22 : 20, CY1 = compact ? 106 : 186;   // CTR pane (compact leaves headroom for the axis titles)
   const VY0 = compact ? 112 : 206, VY1 = compact ? 158 : 256; // volume pane (full charts only)
-  const VH = compact ? 134 : 272;                             // viewBox height (compact: bars live in the CTR pane, no mini-pane)
+  const VH = compact ? 140 : 272;                             // viewBox height (compact: bars live in the CTR pane, no mini-pane)
   const x = (i) => X0 + (i * (X1 - X0)) / Math.max(n - 1, 1);
   const rollMax = Math.max(...roll.filter((v) => v !== null), 1);
   const dom = Math.max(rollMax * 1.35, 5);
@@ -1232,8 +1232,8 @@ function timelineChart(pattern, exps, dates, opts = {}) {
         ? `<text x="2" y="${gy - 2}" font-size="${fsAxis}" fill="#777577">${v.toFixed(v < 10 ? 1 : 0)}%</text>`
         : `<text x="${X0 - 6}" y="${gy + 3}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${v.toFixed(v < 10 ? 1 : 0)}%</text>`);
   }
-  // axis title in line color above the plot, near its labels
-  if (compact) s += `<text x="2" y="${CY0 - 4}" font-size="9.5" font-weight="600" fill="#002660">CTR</text>`;
+  // axis title in line color above the plot, with clear space above the top axis value
+  if (compact) s += `<text x="2" y="${CY0 - 14}" font-size="9.5" font-weight="600" fill="#002660">CTR</text>`;
   // month ticks
   dates.forEach((d, i) => {
     if (d.slice(8) === '01' || i === 0) {
@@ -1335,8 +1335,8 @@ function timelineChart(pattern, exps, dates, opts = {}) {
       tPen = true;
     });
     s += `<path d="${tPath}" fill="none" stroke="#ccb700" stroke-width="2" stroke-linejoin="round"/>`;
-    // axis title in line color above the plot, near its labels
-    if (compact) s += `<text x="${W - 2}" y="${CY0 - 4}" text-anchor="end" font-size="9.5" font-weight="600" fill="#a89700">Trials</text>`;
+    // axis title in line color above the plot, with clear space above the top axis value
+    if (compact) s += `<text x="${W - 2}" y="${CY0 - 14}" text-anchor="end" font-size="9.5" font-weight="600" fill="#a89700">Trials</text>`;
   }
 
   // per-day hover targets (native tooltips)

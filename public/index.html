@@ -1205,14 +1205,17 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   // compact (CAI) charts carry the CTR/Trials legend words right of the plot
   const W = compact ? 1050 : 1000, X0 = 46, X1 = tData ? 962 : 988; // trials axis needs right margin
   const CY0 = compact ? 10 : 20, CY1 = compact ? 100 : 186;   // CTR pane
-  const VY0 = compact ? 112 : 206, VY1 = compact ? 158 : 256; // volume pane
-  const VH = compact ? 172 : 272;                             // viewBox height
+  const VY0 = compact ? 112 : 206, VY1 = compact ? 158 : 256; // volume pane (full charts only)
+  const VH = compact ? 128 : 272;                             // viewBox height (compact: bars live in the CTR pane, no mini-pane)
   const x = (i) => X0 + (i * (X1 - X0)) / Math.max(n - 1, 1);
   const rollMax = Math.max(...roll.filter((v) => v !== null), 1);
   const dom = Math.max(rollMax * 1.35, 5);
   const y = (v) => CY1 - (Math.min(v, dom) / dom) * (CY1 - CY0);
   const sessMax = Math.max(...sess, 1);
-  const yv = (v) => VY1 - (v / sessMax) * (VY1 - VY0);
+  // compact: bars share the CTR pane (own hidden scale, max ≈ pane height)
+  const yv = (v) => compact
+    ? CY1 - (v / sessMax) * (CY1 - CY0) * 0.96
+    : VY1 - (v / sessMax) * (VY1 - VY0);
   const xi = new Map(dates.map((d, i) => [d, i]));
 
   let s = `<svg viewBox="0 0 ${W} ${VH}" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
@@ -1281,14 +1284,17 @@ function timelineChart(pattern, exps, dates, opts = {}) {
         : `<text x="${bx0 + 4}" y="${CY0 + 11 + lane * 13}" font-size="${fsTitle}" font-weight="600" fill="#5e5d60" class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(ex)}">${esc(ex.title)}</text>`) + '</g>');
   }
 
-  // volume mini-pane (slightly wider bars in the compact chart)
+  // volume bars — in-pane behind the lines (compact) or in the mini-pane below (full charts)
   const bw = Math.max(((X1 - X0) / n) * (compact ? 0.85 : 0.7), 0.8);
+  const barBottom = compact ? CY1 : VY1;
   dates.forEach((d, i) => {
-    if (sess[i]) s += `<rect x="${x(i) - bw / 2}" y="${yv(sess[i])}" width="${bw}" height="${VY1 - yv(sess[i])}" fill="#d3d6d8"/>`;
+    if (sess[i]) s += `<rect x="${x(i) - bw / 2}" y="${yv(sess[i])}" width="${bw}" height="${barBottom - yv(sess[i])}" fill="#d3d6d8"${compact ? ' opacity=".55"' : ''}/>`;
   });
-  s += `<line x1="${X0}" y1="${VY1}" x2="${X1}" y2="${VY1}" stroke="#b5b9bc"/>` +
-    `<text x="${X0 - 6}" y="${VY0 + 4}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${fmtInt(sessMax)}</text>` +
-    `<text x="${X1}" y="${VY1 + 12}" text-anchor="end" font-size="${fsAxis}" fill="#777577">engaged sessions/day (${bucketLabel.toLowerCase()})</text>`;
+  if (!compact) {
+    s += `<line x1="${X0}" y1="${VY1}" x2="${X1}" y2="${VY1}" stroke="#b5b9bc"/>` +
+      `<text x="${X0 - 6}" y="${VY0 + 4}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${fmtInt(sessMax)}</text>` +
+      `<text x="${X1}" y="${VY1 + 12}" text-anchor="end" font-size="${fsAxis}" fill="#777577">engaged sessions/day (${bucketLabel.toLowerCase()})</text>`;
+  }
 
   // daily dots (faint; timeline charts only) + 7-day line
   if (!compact) {
@@ -1346,7 +1352,7 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   dates.forEach((d, i) => {
     const t = `${d}\nCTR: ${daily[i] === null ? '–' : daily[i].toFixed(1) + '%'} · 7-day: ${roll[i] === null ? '–' : roll[i].toFixed(1) + '%'}\n${fmtInt(sess[i])} engaged sessions (${bucketLabel.toLowerCase()})` +
       (tRoll ? `\nTrials: ${tDaily[i] === null ? '– (not yet tracked)' : fmtInt(tDaily[i])} · 7-day sum: ${tRoll[i] === null ? '–' : fmtInt(tRoll[i])}` : '');
-    s += `<rect x="${x(i) - colW / 2}" y="${CY0}" width="${colW}" height="${VY1 - CY0}" fill="transparent"><title>${esc(t)}</title></rect>`;
+    s += `<rect x="${x(i) - colW / 2}" y="${CY0}" width="${colW}" height="${(compact ? CY1 + 14 : VY1) - CY0}" fill="transparent"><title>${esc(t)}</title></rect>`;
   });
   s += bandTitles.join('');
 
@@ -1362,7 +1368,7 @@ function timelineChart(pattern, exps, dates, opts = {}) {
     ? `<a class="patLink" href="${pattern.example}" target="_blank" title="Open an example page: ${pattern.example}">${esc(pattern.label)} ↗</a>`
     : esc(pattern.label);
   return `<div class="tlChart"><h3>${heading}</h3>` +
-    `<span class="meta">${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages — based on all_button_clicks)' : 'Trial-intent CTR'} · ${bucketLabel} traffic · 7-day volume-weighted line${compact ? '' : ', single-day dots'}` +
+    `<span class="meta">${metric.fallback ? 'Button-click CTR (no trial-intent tracking on these pages — based on all_button_clicks)' : 'Trial-intent CTR'} · ${bucketLabel} traffic · 7-day volume-weighted line${compact ? ' · gray bars = engaged sessions/day (own scale — hover for values)' : ', single-day dots'}` +
     (tRoll ? ` · <span style="color:#a89700;font-weight:600">gold</span> = started trials (Entry Attribution, ${bucketLabel.toLowerCase()}${bucket === 'all' ? '' : ' per Salesforce Source Category'}), 7-day sum on the right scale` : '') +
     `</span>${s}${evalsHtml}</div>`;
 }

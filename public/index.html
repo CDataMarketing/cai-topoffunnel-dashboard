@@ -147,6 +147,7 @@
   #weeklyWrap thead th.corner, #weeklyWrap tbody th { text-align: left; }
   #ctrChart { padding: 0; } /* chart spans the entire page width */
   #attrView { padding: 6px 20px 24px; }
+  #attrView .tlIntro { max-width: none; } /* explanations span the full app width */
   #attrWrap { max-width: 100%; margin-top: 14px; }
   #attrChart svg { width: 100%; height: auto; }
   #attrView table { border-collapse: collapse; }
@@ -174,16 +175,16 @@
 <header>
   <h1>CAI Top-of-Funnel Dashboard &amp; Web Experiments</h1>
   <nav id="topTabs">
-    <button data-view="ctr" class="active">CAI Traffic, CTR &amp; Trials</button>
+    <button data-view="attr" class="active">Trial Attribution</button>
+    <button data-view="ctr">CAI Traffic, CTR &amp; Trials</button>
     <button data-view="tl">Experiment Timeline</button>
     <button data-view="exp">Website Experiments</button>
-    <button data-view="attr">Trial Attribution</button>
   </nav>
   <span class="meta" id="rangeMeta"></span>
   <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
 </header>
 
-<div id="ctrView">
+<div id="ctrView" hidden>
 <div id="patternBar">
   <label>URL pattern:
     <select id="patternSelect"></select>
@@ -223,7 +224,7 @@
   <div class="tableWrap" id="expWrap" style="max-height:none"></div>
 </div>
 
-<div id="attrView" hidden>
+<div id="attrView">
   <div id="attrIntro"></div>
   <div id="attrChart"></div>
   <div class="tableWrap" id="attrWrap"></div>
@@ -1639,6 +1640,7 @@ async function load() {
   render();
   renderExperiments();
   renderTimelines();
+  renderAttribution(); // the default (first) tab
 }
 
 $('refreshBtn').addEventListener('click', async () => {

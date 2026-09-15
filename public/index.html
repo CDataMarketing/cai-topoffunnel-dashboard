@@ -191,12 +191,12 @@
 <details id="eventsDefs"><summary>Data definitions</summary><div id="eventsLine"></div></details>
 <div id="ctrChart"></div>
 <details open>
-  <summary>Daily</summary>
-  <div class="tableWrap" id="dailyWrap"></div>
-</details>
-<details>
   <summary>Weekly summary</summary>
   <div class="tableWrap" id="weeklyWrap"></div>
+</details>
+<details id="dailyDetails">
+  <summary>Daily</summary>
+  <div class="tableWrap" id="dailyWrap"></div>
 </details>
 <div id="rangeTables"></div>
 <div id="rangeControls">
@@ -574,6 +574,15 @@ function render() {
 
   $('dailyWrap').scrollLeft = $('dailyWrap').scrollWidth; // newest days in view (range cards follow via sync)
   $('weeklyWrap').scrollLeft = $('weeklyWrap').scrollWidth;
+  // the Daily table is collapsed by default, so it has no width to scroll while
+  // hidden — when it is opened, jump to the weekly table's current position
+  $('dailyDetails').ontoggle = () => {
+    if (!$('dailyDetails').open) return;
+    const w = $('weeklyWrap'), d = $('dailyWrap');
+    const wMax = w.scrollWidth - w.clientWidth;
+    const frac = wMax > 0 ? w.scrollLeft / wMax : 1;
+    d.scrollLeft = frac * (d.scrollWidth - d.clientWidth);
+  };
 }
 
 // ---- custom date-range tables ---------------------------------------------

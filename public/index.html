@@ -155,6 +155,7 @@
   #attrView th:first-child { text-align: left; max-width: 200px; white-space: normal; overflow-wrap: break-word; }
   #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 48px; text-align: center; }
   #attrView thead th.attrSub { background: var(--label-bg); font-size: 9px; color: var(--muted); min-width: 46px; }
+  #attrView td.attrShare { text-align: center; font-weight: 600; }
   #ctrChart .tlChart { margin: 12px 0 2px; }
   #ctrChart .tlChart h3 { font-size: 10.5px; margin: 0 20px 1px; }
   #ctrChart .tlChart .meta { font-size: 10.5px; margin: 0 20px 4px; }
@@ -1589,7 +1590,7 @@ function renderAttribution() {
     rows += `<tr class="evt"><th><span style="display:inline-block;width:8px;height:8px;background:${catColor(c)};border:1px solid #b5b9bc;margin-right:5px"></span>${esc(label)}</th>` +
       weeks.map((w) => {
         const v = w.cats[c] || 0;
-        return `<td>${shareStr(v, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +
+        return `<td class="attrShare">${shareStr(v, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +
           `<td><small>${sb ? cvrStr1(v, w.sessB[sb]) : '–'}</small></td>`;
       }).join('') + '</tr>';
   }
@@ -1597,7 +1598,7 @@ function renderAttribution() {
   // as opposed to the sales-led motion's trials. Its CVR uses the website-entry
   // trials only (app entries carry no web session).
   rows += `<tr class="trials"><th>Traffic-related trials</th>${weeks.map((w) =>
-      `<td>100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td><small>${w.cvr === null ? '–' : w.cvr.toFixed(1) + '%'}</small></td>`).join('')}</tr>`;
+      `<td class="attrShare">100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td><small>${w.cvr === null ? '–' : w.cvr.toFixed(1) + '%'}</small></td>`).join('')}</tr>`;
   $('attrWrap').innerHTML = `<table><thead><tr><th rowspan="2">Entry attribution</th>${cols}</tr><tr>${subCols}</tr></thead><tbody>${rows}</tbody></table>` +
     '<p class="tlIntro" style="margin-top:6px">Traffic-related trials = all self-service trials with an entry attribution (as opposed to sales-created trials). Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only); the total row\'s CVR uses the website-entry trials ÷ all engaged sessions. Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket).</p>';
 }

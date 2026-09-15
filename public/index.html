@@ -152,7 +152,7 @@
   #attrView table { border-collapse: collapse; }
   #attrView th, #attrView td { padding: 3px 7px; text-align: right; border: 1px solid var(--border); }
   #attrView th:first-child { text-align: left; max-width: 200px; white-space: normal; overflow-wrap: break-word; }
-  #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 48px; }
+  #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 48px; text-align: center; }
   #attrView thead th.attrSub { background: var(--label-bg); font-size: 9px; color: var(--muted); min-width: 46px; }
   #ctrChart .tlChart { margin: 12px 0 2px; }
   #ctrChart .tlChart h3 { font-size: 10.5px; margin: 0 20px 1px; }
@@ -1433,13 +1433,16 @@ const optionLabel = (p) => p.label
 // Weekly view of ALL started trials (Entry Attribution) by entry category:
 // website entries split into the traffic buckets via the Salesforce Source
 // Category, app markers and anything else by their marker name.
+// bar colors = the shades the CAI tab's tables already use: Resolve blue and
+// its row tints for the web-traffic buckets, the gold/Agility family for the
+// app entries, Balance/Clarity grays for the rest
 const ATTR_CATS = [
-  ['paid', 'Paid traffic', '#4e88e0'],
-  ['organic', 'Organic traffic', '#5fbf89'],
-  ['direct', 'Direct traffic', '#b0c4d8'],
-  ['web-other', 'Other web sources (Referral, AI Referral, Events, unclassified)', '#ffd45e'],
-  ['app-mcp', 'app-mcp (Claude app library)', '#f28c5a'],
-  ['app-gpt', 'app-gpt (ChatGPT app)', '#e879a6'],
+  ['paid', 'Paid traffic', '#002660'],
+  ['organic', 'Organic traffic', '#dbe4f0'],
+  ['direct', 'Direct traffic', '#b5b9bc'],
+  ['web-other', 'Other web sources (Referral, AI Referral, Events, unclassified)', '#f1eee9'],
+  ['app-mcp', 'app-mcp (Claude app library)', '#ccb700'],
+  ['app-gpt', 'app-gpt (ChatGPT app)', '#ffe500'],
 ];
 const TRAFFIC_CATS = new Set(['paid', 'organic', 'direct', 'web-other']);
 // category -> GA4 session bucket of the all-Connect-AI aggregate, for the
@@ -1524,13 +1527,13 @@ function renderAttribution() {
     let yTop = PY1;
     const parts = catIds.filter((c) => w.cats[c]);
     const tipLines = parts.map((c) => `${catMeta(c)[1]}: ${fmtInt(w.cats[c])}`).join('\n');
-    const tip = `${wkLabel(w)}\n${tipLines}\nTraffic-related: ${fmtInt(w.traffic)} · All: ${fmtInt(w.total)}` +
+    const tip = `${wkLabel(w)}\n${tipLines}\nWebsite entries: ${fmtInt(w.traffic)} · All: ${fmtInt(w.total)}` +
       `\nEngaged sessions (all CAI pages): ${fmtInt(w.sess)}\nCVR: ${w.cvr === null ? '–' : w.cvr.toFixed(2) + '%'}`;
     svg += '<g>';
     for (const c of parts) {
       const h = (w.cats[c] / maxTot) * (PY1 - PY0);
       yTop -= h;
-      svg += `<rect x="${xc(i) - bw / 2}" y="${yTop}" width="${bw}" height="${h}" fill="${catMeta(c)[2]}" stroke="#f9f9f7" stroke-width="0.5"/>`;
+      svg += `<rect x="${xc(i) - bw / 2}" y="${yTop}" width="${bw}" height="${h}" fill="${catMeta(c)[2]}" stroke="#b5b9bc" stroke-width="0.5"/>`;
     }
     svg += `<text x="${xc(i)}" y="${yTop - 4}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#15151c">${fmtInt(w.total)}</text>` +
       `<text x="${xc(i)}" y="${PY1 + 13}" text-anchor="middle" font-size="9.5" fill="#5e5d60">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}</text>` +
@@ -1555,7 +1558,7 @@ function renderAttribution() {
   const legend = catIds.filter((c) => weeks.some((w) => w.cats[c]))
     .map((c) => `<span style="margin-right:14px;white-space:nowrap"><span style="display:inline-block;width:9px;height:9px;background:${catMeta(c)[2]};border:1px solid #b5b9bc;margin-right:4px"></span>${esc(catMeta(c)[1])}</span>`)
     .join('') +
-    `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;border-top:2px dashed #15151c;margin:0 4px 3px 0"></span>CVR (traffic-related trials ÷ engaged sessions)</span>`;
+    `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;border-top:2px dashed #15151c;margin:0 4px 3px 0"></span>CVR (website-entry trials ÷ engaged sessions)</span>`;
   $('attrChart').innerHTML = svg + `<div class="meta" style="margin:2px 20px 14px">${legend}</div>`;
 
   // ---- weekly table: three columns per week — share of the week's trials,
@@ -1565,8 +1568,8 @@ function renderAttribution() {
     const sh = (v / total) * 100;
     return sh.toFixed(sh > 0 && sh < 9.95 ? 1 : 0) + '%';
   };
-  const cvrStr2 = (trials, sessions) => (sessions ? ((trials / sessions) * 100).toFixed(2) + '%' : '–');
-  const cols = weeks.map((w) => `<th colspan="3">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br>${fmtDM(w.from)}–${fmtDM(w.to)}</th>`).join('');
+  const cvrStr1 = (trials, sessions) => (sessions ? ((trials / sessions) * 100).toFixed(1) + '%' : '–');
+  const cols = weeks.map((w) => `<th colspan="3">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br><small style="font-weight:400">${fmtDM(w.from)}–${fmtDM(w.to)}</small></th>`).join('');
   const subCols = weeks.map(() => '<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th>').join('');
   let rows = '';
   for (const c of catIds) {
@@ -1577,15 +1580,16 @@ function renderAttribution() {
       weeks.map((w) => {
         const v = w.cats[c] || 0;
         return `<td>${shareStr(v, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +
-          `<td>${sb ? cvrStr2(v, w.sessB[sb]) : '–'}</td>`;
+          `<td><small>${sb ? cvrStr1(v, w.sessB[sb]) : '–'}</small></td>`;
       }).join('') + '</tr>';
   }
-  rows += `<tr class="trials"><th>Traffic-related trials (paid + organic + direct + other web)</th>${weeks.map((w) =>
-      `<td>${shareStr(w.traffic, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(w.traffic)}</small></td><td>${w.cvr === null ? '–' : w.cvr.toFixed(2) + '%'}</td>`).join('')}</tr>` +
-    `<tr class="trials"><th>All trials</th>${weeks.map((w) => `<td>100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td>–</td>`).join('')}</tr>` +
-    `<tr class="sess"><th>Engaged sessions — all Connect AI pages, All traffic</th>${weeks.map((w) => `<td colspan="3">${fmtInt(w.sess)}</td>`).join('')}</tr>`;
+  // total row: all self-service trials with an entry attribution — "traffic-related"
+  // as opposed to the sales-led motion's trials. Its CVR uses the website-entry
+  // trials only (app entries carry no web session).
+  rows += `<tr class="trials"><th>Traffic-related trials</th>${weeks.map((w) =>
+      `<td>100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td><small>${w.cvr === null ? '–' : w.cvr.toFixed(1) + '%'}</small></td>`).join('')}</tr>`;
   $('attrWrap').innerHTML = `<table><thead><tr><th rowspan="2">Entry attribution</th>${cols}</tr><tr>${subCols}</tr></thead><tbody>${rows}</tbody></table>` +
-    '<p class="tlIntro" style="margin-top:6px">Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only). Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket).</p>';
+    '<p class="tlIntro" style="margin-top:6px">Traffic-related trials = all self-service trials with an entry attribution (as opposed to sales-created trials). Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only); the total row\'s CVR uses the website-entry trials ÷ all engaged sessions. Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket).</p>';
 }
 
 // ISO week number of a YYYY-MM-DD date

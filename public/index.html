@@ -1591,7 +1591,7 @@ function renderAttribution() {
   };
   const cvrStr1 = (trials, sessions) => (sessions ? ((trials / sessions) * 100).toFixed(1) + '%' : '–');
   const cols = weeks.map((w) => `<th colspan="4">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br><small style="font-weight:400">${fmtDM(w.from)}–${fmtDM(w.to)}</small></th>`).join('');
-  const subCols = weeks.map((w) => `<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th><th class="attrSub" title="Connect AI new-business opportunities opened on the signup's account on/after the trial start${w.oppsIncomplete ? ' — some of this week’s trials are still running, more opportunities can follow' : ''}">Opps${w.oppsIncomplete ? ' (incomplete)' : ''}</th>`).join('');
+  const subCols = weeks.map((w) => `<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th><th class="attrSub" title="Connect AI new-business opportunities opened on the signup's account on/after the trial start${w.oppsIncomplete ? ' — some of this week’s trials are still running, more opportunities can follow' : ''}">Opps${w.oppsIncomplete ? '<br><span style="font-size:8px">(incomplete)</span>' : ''}</th>`).join('');
   let rows = '';
   for (const c of catIds) {
     if (!weeks.some((w) => w.cats[c])) continue;

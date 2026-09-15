@@ -147,14 +147,13 @@
   #weeklyWrap thead th.corner, #weeklyWrap tbody th { text-align: left; }
   #ctrChart { padding: 0; } /* chart spans the entire page width */
   #attrView { padding: 6px 20px 24px; }
-  #attrBody { display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap; }
-  #attrWrap { flex: 0 0 auto; max-width: 100%; }
-  #attrChart { flex: 1 1 420px; min-width: 380px; }
+  #attrWrap { max-width: 100%; margin-top: 14px; }
   #attrChart svg { width: 100%; height: auto; }
   #attrView table { border-collapse: collapse; }
   #attrView th, #attrView td { padding: 3px 7px; text-align: right; border: 1px solid var(--border); }
   #attrView th:first-child { text-align: left; max-width: 200px; white-space: normal; overflow-wrap: break-word; }
-  #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 62px; }
+  #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 48px; }
+  #attrView thead th.attrSub { background: var(--label-bg); font-size: 9px; color: var(--muted); min-width: 46px; }
   #ctrChart .tlChart { margin: 12px 0 2px; }
   #ctrChart .tlChart h3 { font-size: 10.5px; margin: 0 20px 1px; }
   #ctrChart .tlChart .meta { font-size: 10.5px; margin: 0 20px 4px; }
@@ -226,10 +225,8 @@
 
 <div id="attrView" hidden>
   <div id="attrIntro"></div>
-  <div id="attrBody">
-    <div class="tableWrap" id="attrWrap"></div>
-    <div id="attrChart"></div>
-  </div>
+  <div id="attrChart"></div>
+  <div class="tableWrap" id="attrWrap"></div>
 </div>
 
 <div id="tlView" hidden>
@@ -1437,14 +1434,19 @@ const optionLabel = (p) => p.label
 // website entries split into the traffic buckets via the Salesforce Source
 // Category, app markers and anything else by their marker name.
 const ATTR_CATS = [
-  ['paid', 'Paid traffic', '#002660'],
-  ['organic', 'Organic traffic', '#6b8cba'],
-  ['direct', 'Direct traffic', '#b5b9bc'],
-  ['web-other', 'Other web sources (Referral, AI Referral, Events, unclassified)', '#d9d6d2'],
-  ['app-mcp', 'app-mcp (Claude app library)', '#ccb700'],
-  ['app-gpt', 'app-gpt (ChatGPT app)', '#ffe500'],
+  ['paid', 'Paid traffic', '#4e88e0'],
+  ['organic', 'Organic traffic', '#5fbf89'],
+  ['direct', 'Direct traffic', '#b0c4d8'],
+  ['web-other', 'Other web sources (Referral, AI Referral, Events, unclassified)', '#ffd45e'],
+  ['app-mcp', 'app-mcp (Claude app library)', '#f28c5a'],
+  ['app-gpt', 'app-gpt (ChatGPT app)', '#e879a6'],
 ];
 const TRAFFIC_CATS = new Set(['paid', 'organic', 'direct', 'web-other']);
+// category -> GA4 session bucket of the all-Connect-AI aggregate, for the
+// per-source CVR columns. App categories have no web session; "web-other" has
+// none either — its trials are mostly SFDC-unclassified and do NOT correspond
+// to GA4's small "other" session bucket, so a ratio there would mislead.
+const CAT_SESS_BUCKET = { paid: 'paid', organic: 'organic', direct: 'direct' };
 
 function renderAttribution() {
   const attr = PAYLOAD.snapshot.trialAttribution || {};
@@ -1479,9 +1481,15 @@ function renderAttribution() {
   const catMeta = (id) => ATTR_CATS.find(([cid]) => cid === id) || [id, id, '#777577'];
   for (const w of weeks) {
     w.cats = {}; w.sess = 0;
+    w.sessB = { paid: 0, organic: 0, direct: 0, other: 0 };
     for (const ds of w.dates) {
       for (const [c, n] of Object.entries(attr[ds] || {})) w.cats[c] = (w.cats[c] || 0) + n;
-      w.sess += (allDays[ds]?.s?.all) || 0;
+      const s = allDays[ds]?.s || {};
+      w.sess += s.all || 0;
+      w.sessB.paid += s.paid || 0;
+      w.sessB.organic += s.organic || 0;
+      w.sessB.direct += s.direct || 0;
+      w.sessB.other += Math.max((s.all || 0) - (s.paid || 0) - (s.organic || 0) - (s.direct || 0), 0);
     }
     w.traffic = catIds.filter((c) => TRAFFIC_CATS.has(c)).reduce((a, c) => a + (w.cats[c] || 0), 0);
     w.total = catIds.reduce((a, c) => a + (w.cats[c] || 0), 0);
@@ -1550,25 +1558,34 @@ function renderAttribution() {
     `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;border-top:2px dashed #15151c;margin:0 4px 3px 0"></span>CVR (traffic-related trials ÷ engaged sessions)</span>`;
   $('attrChart').innerHTML = svg + `<div class="meta" style="margin:2px 20px 14px">${legend}</div>`;
 
-  // ---- weekly table: categories × weeks (wrapped two-line headers keep columns narrow)
-  const cols = weeks.map((w) => `<th>CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br>${fmtDM(w.from)}–${fmtDM(w.to)}</th>`).join('');
+  // ---- weekly table: three columns per week — share of the week's trials,
+  // absolute trials, and CVR against the matching session bucket where one exists
+  const shareStr = (v, total) => {
+    if (!total) return '–';
+    const sh = (v / total) * 100;
+    return sh.toFixed(sh > 0 && sh < 9.95 ? 1 : 0) + '%';
+  };
+  const cvrStr2 = (trials, sessions) => (sessions ? ((trials / sessions) * 100).toFixed(2) + '%' : '–');
+  const cols = weeks.map((w) => `<th colspan="3">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br>${fmtDM(w.from)}–${fmtDM(w.to)}</th>`).join('');
+  const subCols = weeks.map(() => '<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th>').join('');
   let rows = '';
   for (const c of catIds) {
     if (!weeks.some((w) => w.cats[c])) continue;
     const [, label, color] = catMeta(c);
+    const sb = CAT_SESS_BUCKET[c];
     rows += `<tr class="evt"><th><span style="display:inline-block;width:8px;height:8px;background:${color};border:1px solid #b5b9bc;margin-right:5px"></span>${esc(label)}</th>` +
       weeks.map((w) => {
         const v = w.cats[c] || 0;
-        if (!w.total) return '<td>–</td>';
-        const sh = (v / w.total) * 100;
-        return `<td>${sh.toFixed(sh > 0 && sh < 9.95 ? 1 : 0)}% <small style="color:var(--muted)">(${fmtInt(v)})</small></td>`;
+        return `<td>${shareStr(v, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +
+          `<td>${sb ? cvrStr2(v, w.sessB[sb]) : '–'}</td>`;
       }).join('') + '</tr>';
   }
-  rows += `<tr class="trials"><th>Traffic-related trials (paid + organic + direct + other web)</th>${weeks.map((w) => `<td>${fmtInt(w.traffic)}</td>`).join('')}</tr>` +
-    `<tr class="trials"><th>All trials</th>${weeks.map((w) => `<td>${fmtInt(w.total)}</td>`).join('')}</tr>` +
-    `<tr class="sess"><th>Engaged sessions — all Connect AI pages, All traffic</th>${weeks.map((w) => `<td>${fmtInt(w.sess)}</td>`).join('')}</tr>` +
-    `<tr class="evctr trials"><th><em>↳ CVR — traffic-related trials ÷ engaged sessions</em></th>${weeks.map((w) => `<td>${w.cvr === null ? '–' : w.cvr.toFixed(2) + '%'}</td>`).join('')}</tr>`;
-  $('attrWrap').innerHTML = `<table><thead><tr><th>Entry attribution</th>${cols}</tr></thead><tbody>${rows}</tbody></table>`;
+  rows += `<tr class="trials"><th>Traffic-related trials (paid + organic + direct + other web)</th>${weeks.map((w) =>
+      `<td>${shareStr(w.traffic, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(w.traffic)}</small></td><td>${w.cvr === null ? '–' : w.cvr.toFixed(2) + '%'}</td>`).join('')}</tr>` +
+    `<tr class="trials"><th>All trials</th>${weeks.map((w) => `<td>100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td>–</td>`).join('')}</tr>` +
+    `<tr class="sess"><th>Engaged sessions — all Connect AI pages, All traffic</th>${weeks.map((w) => `<td colspan="3">${fmtInt(w.sess)}</td>`).join('')}</tr>`;
+  $('attrWrap').innerHTML = `<table><thead><tr><th rowspan="2">Entry attribution</th>${cols}</tr><tr>${subCols}</tr></thead><tbody>${rows}</tbody></table>` +
+    '<p class="tlIntro" style="margin-top:6px">Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only). Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket).</p>';
 }
 
 // ISO week number of a YYYY-MM-DD date

@@ -92,6 +92,20 @@ function entryPath(value) {
   return p;
 }
 
+// Entry_Attribution__c value -> category for the Trial Attribution tab.
+// Website entries (URL paths, the pageless `web` marker and /default.aspx) are
+// "traffic-related" and split by the lead's Source_Category traffic bucket;
+// app markers and anything else get their own category by marker name.
+function entryCategory(raw, bucket) {
+  const v = raw.split('|')[0].trim();
+  if (v.startsWith('/')) {
+    if (v.includes('/jp/')) return null; // dashboard-wide /jp/ exclusion
+    return bucket === 'other' ? 'web-other' : bucket;
+  }
+  if (v === 'web') return bucket === 'other' ? 'web-other' : bucket;
+  return v || 'unknown'; // app-mcp, app-gpt, web-local, local-sandbox, …
+}
+
 async function fetchTrials() {
   const sql =
     'SELECT [CreatedDate], [Entry_Attribution__c], [Source_Category__c] ' +
@@ -103,12 +117,16 @@ async function fetchTrials() {
   if (res.rowCount >= ROW_LIMIT) throw new Error('trials row cap hit — raise ROW_LIMIT');
 
   const trials = {}; // { patternId: { date: { all, paid, organic, direct } } }
+  const attribution = {}; // { date: { category: count } } — Trial Attribution tab
   let attributed = 0;
   for (const row of res.rows) {
-    const p = entryPath(String(row.Entry_Attribution__c || ''));
-    if (!p || p.includes('/jp/')) continue; // same Japanese-pages exclusion as GA4
+    const rawEntry = String(row.Entry_Attribution__c || '');
     const date = String(row.CreatedDate).slice(0, 10);
     const bucket = sourceBucket(String(row.Source_Category__c || ''));
+    const cat = entryCategory(rawEntry, bucket);
+    if (cat) (attribution[date] ??= {})[cat] = ((attribution[date] ??= {})[cat] || 0) + 1;
+    const p = entryPath(rawEntry);
+    if (!p || p.includes('/jp/')) continue; // same Japanese-pages exclusion as GA4
     let hit = false;
     for (const pat of compiled) {
       if (!pat.re.test(p) || (pat.exRe && pat.exRe.test(p))) continue;
@@ -120,13 +138,15 @@ async function fetchTrials() {
     if (hit) attributed++;
   }
   console.log(`Trials: ${res.rowCount} attribution leads fetched, ${attributed} matched a URL pattern`);
-  return trials;
+  return { trials, attribution };
 }
 
 // merge into the snapshot; keeps existing trials if Salesforce is unreachable
 async function updateSnapshot() {
   const snapshot = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8'));
-  snapshot.trials = await fetchTrials();
+  const { trials, attribution } = await fetchTrials();
+  snapshot.trials = trials;
+  snapshot.trialAttribution = attribution; // Trial Attribution tab: { date: { category: n } }
   snapshot.trialsStart = TRIALS_START; // UI: days before this show "–", not 0
   snapshot.trialsUpdatedAt = new Date().toISOString();
   fs.writeFileSync(OUT_FILE, JSON.stringify(snapshot));

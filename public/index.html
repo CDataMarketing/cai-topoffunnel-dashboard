@@ -1202,8 +1202,11 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   // so their in-SVG text takes smaller viewBox sizes
   const fsAxis = compact ? 9.5 : 8;
   const fsTitle = compact ? 10 : 8.5;
-  // compact (CAI) charts title their axes with the CTR/Trials legend words
-  const W = compact ? 1010 : 1000, X0 = 46, X1 = tData ? 962 : 988; // trials axis needs right margin
+  // compact (CAI) charts: the plot spans the full viewBox width — axis labels
+  // and the CTR/Trials titles are drawn INSIDE the plot, wherever they fit
+  const W = 1000;
+  const X0 = compact ? 0 : 46;
+  const X1 = compact ? W : (tData ? 962 : 988); // full charts: trials axis needs right margin
   const CY0 = compact ? 16 : 20, CY1 = compact ? 100 : 186;   // CTR pane (compact leaves headroom for the axis titles)
   const VY0 = compact ? 112 : 206, VY1 = compact ? 158 : 256; // volume pane (full charts only)
   const VH = compact ? 134 : 272;                             // viewBox height (compact: bars live in the CTR pane, no mini-pane)
@@ -1225,10 +1228,12 @@ function timelineChart(pattern, exps, dates, opts = {}) {
   for (let t = 0; t <= ticks; t++) {
     const v = (dom / ticks) * t, gy = y(v);
     s += `<line x1="${X0}" y1="${gy}" x2="${X1}" y2="${gy}" stroke="#d9d6d2" stroke-width="1"/>` +
-      `<text x="${X0 - 6}" y="${gy + 3}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${v.toFixed(v < 10 ? 1 : 0)}%</text>`;
+      (compact
+        ? `<text x="2" y="${gy - 2}" font-size="${fsAxis}" fill="#777577">${v.toFixed(v < 10 ? 1 : 0)}%</text>`
+        : `<text x="${X0 - 6}" y="${gy + 3}" text-anchor="end" font-size="${fsAxis}" fill="#777577">${v.toFixed(v < 10 ? 1 : 0)}%</text>`);
   }
-  // axis title in line color just above the left (CTR) axis, left-aligned
-  if (compact) s += `<text x="0" y="${CY0 - 4}" font-size="9.5" font-weight="600" fill="#002660">CTR</text>`;
+  // axis title in line color above the plot, near its labels
+  if (compact) s += `<text x="2" y="${CY0 - 4}" font-size="9.5" font-weight="600" fill="#002660">CTR</text>`;
   // month ticks
   dates.forEach((d, i) => {
     if (d.slice(8) === '01' || i === 0) {
@@ -1319,7 +1324,9 @@ function timelineChart(pattern, exps, dates, opts = {}) {
     const yt = (v) => CY1 - (Math.min(v, tDom) / tDom) * (CY1 - CY0);
     for (let t = 0; t <= 4; t++) { // right axis labels on the shared gridlines
       const v = Math.round((tDom / 4) * t);
-      s += `<text x="${X1 + 5}" y="${yt(v) + 3}" font-size="${fsAxis}" fill="#a89700">${fmtInt(v)}</text>`;
+      s += compact
+        ? `<text x="${W - 2}" y="${yt(v) - 2}" text-anchor="end" font-size="${fsAxis}" fill="#a89700">${fmtInt(v)}</text>`
+        : `<text x="${X1 + 5}" y="${yt(v) + 3}" font-size="${fsAxis}" fill="#a89700">${fmtInt(v)}</text>`;
     }
     let tPath = '', tPen = false;
     tRoll.forEach((v, i) => {
@@ -1328,8 +1335,8 @@ function timelineChart(pattern, exps, dates, opts = {}) {
       tPen = true;
     });
     s += `<path d="${tPath}" fill="none" stroke="#ccb700" stroke-width="2" stroke-linejoin="round"/>`;
-    // axis title in line color just above the right (trials) axis, right-aligned
-    if (compact) s += `<text x="${W}" y="${CY0 - 4}" text-anchor="end" font-size="9.5" font-weight="600" fill="#a89700">Trials</text>`;
+    // axis title in line color above the plot, near its labels
+    if (compact) s += `<text x="${W - 2}" y="${CY0 - 4}" text-anchor="end" font-size="9.5" font-weight="600" fill="#a89700">Trials</text>`;
   }
 
   // per-day hover targets (native tooltips)

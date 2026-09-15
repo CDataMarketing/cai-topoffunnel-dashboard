@@ -108,7 +108,8 @@ function entryCategory(raw, bucket) {
 
 async function fetchTrials() {
   const sql =
-    'SELECT [CreatedDate], [Entry_Attribution__c], [Source_Category__c] ' +
+    'SELECT [CreatedDate], [Entry_Attribution__c], [Source_Category__c], ' +
+    '[Cloud_AccountId__c], [ConvertedAccountId] ' +
     'FROM [Salesforce-US-Prod].[Salesforce].[Lead] ' +
     `WHERE [CreatedDate] >= '${TRIALS_START}' ` +
     'AND [Entry_Attribution__c] IS NOT NULL ' +
@@ -118,13 +119,21 @@ async function fetchTrials() {
 
   const trials = {}; // { patternId: { date: { all, paid, organic, direct } } }
   const attribution = {}; // { date: { category: count } } — Trial Attribution tab
+  const leads = []; // for the opportunity join below
   let attributed = 0;
   for (const row of res.rows) {
     const rawEntry = String(row.Entry_Attribution__c || '');
     const date = String(row.CreatedDate).slice(0, 10);
     const bucket = sourceBucket(String(row.Source_Category__c || ''));
     const cat = entryCategory(rawEntry, bucket);
-    if (cat) (attribution[date] ??= {})[cat] = ((attribution[date] ??= {})[cat] || 0) + 1;
+    if (cat) {
+      (attribution[date] ??= {})[cat] = ((attribution[date] ??= {})[cat] || 0) + 1;
+      leads.push({
+        date, cat,
+        cloudAcct: row.Cloud_AccountId__c ? String(row.Cloud_AccountId__c) : null,
+        convAcct: row.ConvertedAccountId ? String(row.ConvertedAccountId) : null,
+      });
+    }
     const p = entryPath(rawEntry);
     if (!p || p.includes('/jp/')) continue; // same Japanese-pages exclusion as GA4
     let hit = false;
@@ -138,15 +147,75 @@ async function fetchTrials() {
     if (hit) attributed++;
   }
   console.log(`Trials: ${res.rowCount} attribution leads fetched, ${attributed} matched a URL pattern`);
-  return { trials, attribution };
+  return { trials, attribution, leads };
+}
+
+// Trial -> Opportunity conversion. Opportunities are NOT auto-created by a
+// trial: sales opens them on the (converted) account. A trial "converted" if
+// a Connect AI new-business opp exists on the lead's converted account with a
+// CreatedDate on/after the signup (memory: sfdc-plg-attribution). Each opp is
+// attributed to the LATEST signup on the account at or before the opp date.
+async function fetchTrialOpps(leads) {
+  const opps = await query(
+    'SELECT [AccountId], [CreatedDate] FROM [Salesforce-US-Prod].[Salesforce].[Opportunity] ' +
+    `WHERE [CreatedDate] >= '${TRIALS_START}' AND [Type] LIKE 'New Business%' AND (` +
+    "[Leading_Product__c] IN ('Connect for Analytics', 'Connect MCP') " +
+    "OR [Main_Products__c] LIKE '%Connect AI%' OR [Main_Products__c] LIKE '%Connect Cloud%') " +
+    `LIMIT ${ROW_LIMIT}`);
+  // trial expiry per CAI account — a week's trials are "all ended" once every
+  // expiry date lies in the past. Trial__c.CAI_Account__c holds the SFDC
+  // record id of CAI_Account__c, while Lead.Cloud_AccountId__c holds the cloud
+  // UUID (CAI_Account__c.CAI_AccountID__c) — bridge via the CAI_Account__c table.
+  const trialRows = await query(
+    'SELECT [CAI_Account__c], [TrialExpiryDate__c] FROM [Salesforce-US-Prod].[Salesforce].[Trial__c] ' +
+    `WHERE [Product__c] = 'Cloud' AND [CreatedDate] >= '${TRIALS_START}' ` +
+    `AND [CAI_Account__c] IS NOT NULL LIMIT ${ROW_LIMIT}`);
+  const caiRows = await query(
+    'SELECT [Id], [CAI_AccountID__c] FROM [Salesforce-US-Prod].[Salesforce].[CAI_Account__c] ' +
+    `WHERE [CreatedDate] >= '${TRIALS_START}' AND [CAI_AccountID__c] IS NOT NULL LIMIT ${ROW_LIMIT}`);
+  const recIdByUuid = new Map(caiRows.rows.map((r) => [String(r.CAI_AccountID__c), String(r.Id)]));
+
+  const leadsByAcct = new Map(); // ConvertedAccountId -> leads (sorted later)
+  for (const l of leads) {
+    if (!l.convAcct) continue;
+    if (!leadsByAcct.has(l.convAcct)) leadsByAcct.set(l.convAcct, []);
+    leadsByAcct.get(l.convAcct).push(l);
+  }
+  const trialOpps = {}; // { leadDate: { category: count } }
+  let converted = 0;
+  for (const o of opps.rows) {
+    const cands = leadsByAcct.get(String(o.AccountId || ''));
+    if (!cands) continue;
+    const oDate = String(o.CreatedDate).slice(0, 10);
+    const lead = cands.filter((l) => l.date <= oDate).sort((a, b) => b.date.localeCompare(a.date))[0];
+    if (!lead) continue;
+    (trialOpps[lead.date] ??= {})[lead.cat] = ((trialOpps[lead.date] ??= {})[lead.cat] || 0) + 1;
+    converted++;
+  }
+  const expiryByAcct = new Map();
+  for (const t of trialRows.rows) {
+    const acct = String(t.CAI_Account__c), exp = String(t.TrialExpiryDate__c || '').slice(0, 10);
+    if (exp && (!expiryByAcct.has(acct) || expiryByAcct.get(acct) < exp)) expiryByAcct.set(acct, exp);
+  }
+  const trialMaxExpiry = {}; // { leadDate: latest trial expiry among that day's signups }
+  for (const l of leads) {
+    const recId = l.cloudAcct ? recIdByUuid.get(l.cloudAcct) : null;
+    const exp = recId ? expiryByAcct.get(recId) : null;
+    if (exp && (!trialMaxExpiry[l.date] || trialMaxExpiry[l.date] < exp)) trialMaxExpiry[l.date] = exp;
+  }
+  console.log(`Trial opps: ${opps.rowCount} CAI new-business opps fetched, ${converted} attributed to a trial signup`);
+  return { trialOpps, trialMaxExpiry };
 }
 
 // merge into the snapshot; keeps existing trials if Salesforce is unreachable
 async function updateSnapshot() {
   const snapshot = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8'));
-  const { trials, attribution } = await fetchTrials();
+  const { trials, attribution, leads } = await fetchTrials();
+  const { trialOpps, trialMaxExpiry } = await fetchTrialOpps(leads);
   snapshot.trials = trials;
   snapshot.trialAttribution = attribution; // Trial Attribution tab: { date: { category: n } }
+  snapshot.trialOpps = trialOpps; // { leadDate: { category: opps } }
+  snapshot.trialMaxExpiry = trialMaxExpiry; // { leadDate: latest trial expiry }
   snapshot.trialsStart = TRIALS_START; // UI: days before this show "–", not 0
   snapshot.trialsUpdatedAt = new Date().toISOString();
   fs.writeFileSync(OUT_FILE, JSON.stringify(snapshot));

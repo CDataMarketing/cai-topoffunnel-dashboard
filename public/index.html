@@ -1489,11 +1489,19 @@ function renderAttribution() {
   // brightness-ranked shades (all from the CAI tables' palette): the LARGEST
   // source gets the brightest shade, the smallest the darkest
   const SHADES = ['#f1eee9', '#dbe4f0', '#ffe500', '#b5b9bc', '#ccb700', '#002660', '#777577', '#15151c'];
+  const oppsBy = PAYLOAD.snapshot.trialOpps || {};
+  const maxExp = PAYLOAD.snapshot.trialMaxExpiry || {};
+  const today = new Date().toISOString().slice(0, 10);
   for (const w of weeks) {
     w.cats = {}; w.sess = 0;
     w.sessB = { paid: 0, organic: 0, direct: 0, other: 0 };
+    w.opps = {}; w.oppsTotal = 0;
+    // "(incomplete)" while any of the week's trials has not expired yet — more
+    // opportunities can still appear for these signups
+    w.oppsIncomplete = w.dates.some((ds) => (maxExp[ds] || '') >= today);
     for (const ds of w.dates) {
       for (const [c, n] of Object.entries(attr[ds] || {})) w.cats[c] = (w.cats[c] || 0) + n;
+      for (const [c, n] of Object.entries(oppsBy[ds] || {})) { w.opps[c] = (w.opps[c] || 0) + n; w.oppsTotal += n; }
       const s = allDays[ds]?.s || {};
       w.sess += s.all || 0;
       w.sessB.paid += s.paid || 0;
@@ -1582,8 +1590,8 @@ function renderAttribution() {
     return sh.toFixed(sh > 0 && sh < 9.95 ? 1 : 0) + '%';
   };
   const cvrStr1 = (trials, sessions) => (sessions ? ((trials / sessions) * 100).toFixed(1) + '%' : '–');
-  const cols = weeks.map((w) => `<th colspan="3">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br><small style="font-weight:400">${fmtDM(w.from)}–${fmtDM(w.to)}</small></th>`).join('');
-  const subCols = weeks.map(() => '<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th>').join('');
+  const cols = weeks.map((w) => `<th colspan="4">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br><small style="font-weight:400">${fmtDM(w.from)}–${fmtDM(w.to)}</small></th>`).join('');
+  const subCols = weeks.map((w) => `<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th><th class="attrSub" title="Connect AI new-business opportunities opened on the signup's account on/after the trial start${w.oppsIncomplete ? ' — some of this week’s trials are still running, more opportunities can follow' : ''}">Opps${w.oppsIncomplete ? ' (incomplete)' : ''}</th>`).join('');
   let rows = '';
   for (const c of catIds) {
     if (!weeks.some((w) => w.cats[c])) continue;
@@ -1593,16 +1601,16 @@ function renderAttribution() {
       weeks.map((w) => {
         const v = w.cats[c] || 0;
         return `<td class="attrShare">${shareStr(v, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +
-          `<td><small>${sb ? cvrStr1(v, w.sessB[sb]) : '–'}</small></td>`;
+          `<td><small>${sb ? cvrStr1(v, w.sessB[sb]) : '–'}</small></td><td><small>${fmtInt(w.opps[c] || 0)}</small></td>`;
       }).join('') + '</tr>';
   }
   // total row: all self-service trials with an entry attribution — "traffic-related"
   // as opposed to the sales-led motion's trials. Its CVR uses the website-entry
   // trials only (app entries carry no web session).
   rows += `<tr class="trials"><th>Traffic-related trials</th>${weeks.map((w) =>
-      `<td class="attrShare">100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td><small>${w.cvr === null ? '–' : w.cvr.toFixed(1) + '%'}</small></td>`).join('')}</tr>`;
+      `<td class="attrShare">100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td><small>${w.cvr === null ? '–' : w.cvr.toFixed(1) + '%'}</small></td><td><small>${fmtInt(w.oppsTotal)}</small></td>`).join('')}</tr>`;
   $('attrWrap').innerHTML = `<table><thead><tr><th rowspan="2">Entry attribution</th>${cols}</tr><tr>${subCols}</tr></thead><tbody>${rows}</tbody></table>` +
-    '<p class="tlIntro" style="margin-top:6px">Traffic-related trials = all self-service trials with an entry attribution (as opposed to sales-created trials). Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only); the total row\'s CVR uses the website-entry trials ÷ all engaged sessions. Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket).</p>';
+    '<p class="tlIntro" style="margin-top:6px">Traffic-related trials = all self-service trials with an entry attribution (as opposed to sales-created trials). Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only); the total row\'s CVR uses the website-entry trials ÷ all engaged sessions. Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket). Opps = Connect AI new-business opportunities opened on the signup\'s converted account on/after the trial start — sales opens opportunities manually, so they lag the trial; a week is "(incomplete)" while any of its trials has not expired yet.</p>';
 }
 
 // ISO week number of a YYYY-MM-DD date

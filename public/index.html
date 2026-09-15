@@ -1482,6 +1482,9 @@ function renderAttribution() {
   for (const day of Object.values(attr)) // discover categories beyond the known set
     for (const c of Object.keys(day)) if (!catIds.includes(c)) catIds.push(c);
   const catMeta = (id) => ATTR_CATS.find(([cid]) => cid === id) || [id, id, '#777577'];
+  // brightness-ranked shades (all from the CAI tables' palette): the LARGEST
+  // source gets the brightest shade, the smallest the darkest
+  const SHADES = ['#f1eee9', '#dbe4f0', '#ffe500', '#b5b9bc', '#ccb700', '#002660', '#777577', '#15151c'];
   for (const w of weeks) {
     w.cats = {}; w.sess = 0;
     w.sessB = { paid: 0, organic: 0, direct: 0, other: 0 };
@@ -1498,6 +1501,12 @@ function renderAttribution() {
     w.total = catIds.reduce((a, c) => a + (w.cats[c] || 0), 0);
     w.cvr = w.sess ? (w.traffic / w.sess) * 100 : null;
   }
+  const totBy = {};
+  for (const w of weeks) for (const [c, v] of Object.entries(w.cats)) totBy[c] = (totBy[c] || 0) + v;
+  const colorOf = {};
+  catIds.filter((c) => totBy[c]).sort((a, b) => totBy[b] - totBy[a])
+    .forEach((c, i) => { colorOf[c] = SHADES[Math.min(i, SHADES.length - 1)]; });
+  const catColor = (id) => colorOf[id] || '#777577';
   const fmtDM = (d) => `${d.slice(8)}.${d.slice(5, 7)}.`;
   const wkLabel = (w) => `CW ${isoWeekNo(w.from)} · ${fmtDM(w.from)}–${fmtDM(w.to)}${w.partial ? ' (partial)' : ''}`;
 
@@ -1533,7 +1542,7 @@ function renderAttribution() {
     for (const c of parts) {
       const h = (w.cats[c] / maxTot) * (PY1 - PY0);
       yTop -= h;
-      svg += `<rect x="${xc(i) - bw / 2}" y="${yTop}" width="${bw}" height="${h}" fill="${catMeta(c)[2]}" stroke="#b5b9bc" stroke-width="0.5"/>`;
+      svg += `<rect x="${xc(i) - bw / 2}" y="${yTop}" width="${bw}" height="${h}" fill="${catColor(c)}" stroke="#b5b9bc" stroke-width="0.5"/>`;
     }
     svg += `<text x="${xc(i)}" y="${yTop - 4}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#15151c">${fmtInt(w.total)}</text>` +
       `<text x="${xc(i)}" y="${PY1 + 13}" text-anchor="middle" font-size="9.5" fill="#5e5d60">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}</text>` +
@@ -1556,7 +1565,7 @@ function renderAttribution() {
   });
   svg += `<line x1="${PX0}" y1="${PY1}" x2="${PX1}" y2="${PY1}" stroke="#b5b9bc"/></svg>`;
   const legend = catIds.filter((c) => weeks.some((w) => w.cats[c]))
-    .map((c) => `<span style="margin-right:14px;white-space:nowrap"><span style="display:inline-block;width:9px;height:9px;background:${catMeta(c)[2]};border:1px solid #b5b9bc;margin-right:4px"></span>${esc(catMeta(c)[1])}</span>`)
+    .map((c) => `<span style="margin-right:14px;white-space:nowrap"><span style="display:inline-block;width:9px;height:9px;background:${catColor(c)};border:1px solid #b5b9bc;margin-right:4px"></span>${esc(catMeta(c)[1])}</span>`)
     .join('') +
     `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;border-top:2px dashed #15151c;margin:0 4px 3px 0"></span>CVR (website-entry trials ÷ engaged sessions)</span>`;
   $('attrChart').innerHTML = svg + `<div class="meta" style="margin:2px 20px 14px">${legend}</div>`;
@@ -1574,9 +1583,9 @@ function renderAttribution() {
   let rows = '';
   for (const c of catIds) {
     if (!weeks.some((w) => w.cats[c])) continue;
-    const [, label, color] = catMeta(c);
+    const [, label] = catMeta(c);
     const sb = CAT_SESS_BUCKET[c];
-    rows += `<tr class="evt"><th><span style="display:inline-block;width:8px;height:8px;background:${color};border:1px solid #b5b9bc;margin-right:5px"></span>${esc(label)}</th>` +
+    rows += `<tr class="evt"><th><span style="display:inline-block;width:8px;height:8px;background:${catColor(c)};border:1px solid #b5b9bc;margin-right:5px"></span>${esc(label)}</th>` +
       weeks.map((w) => {
         const v = w.cats[c] || 0;
         return `<td>${shareStr(v, w.total)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +

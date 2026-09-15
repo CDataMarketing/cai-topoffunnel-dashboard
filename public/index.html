@@ -147,10 +147,14 @@
   #weeklyWrap thead th.corner, #weeklyWrap tbody th { text-align: left; }
   #ctrChart { padding: 0; } /* chart spans the entire page width */
   #attrView { padding: 6px 20px 24px; }
+  #attrBody { display: flex; gap: 26px; align-items: flex-start; flex-wrap: wrap; }
+  #attrWrap { flex: 0 0 auto; max-width: 100%; }
+  #attrChart { flex: 1 1 420px; min-width: 380px; }
+  #attrChart svg { width: 100%; height: auto; }
   #attrView table { border-collapse: collapse; }
-  #attrView th, #attrView td { padding: 3px 10px; text-align: right; border: 1px solid var(--border); }
-  #attrView th:first-child { text-align: left; }
-  #attrView thead th { background: var(--head-bg); }
+  #attrView th, #attrView td { padding: 3px 7px; text-align: right; border: 1px solid var(--border); }
+  #attrView th:first-child { text-align: left; max-width: 200px; white-space: normal; overflow-wrap: break-word; }
+  #attrView thead th { background: var(--head-bg); white-space: normal; font-size: 10px; min-width: 62px; }
   #ctrChart .tlChart { margin: 12px 0 2px; }
   #ctrChart .tlChart h3 { font-size: 10.5px; margin: 0 20px 1px; }
   #ctrChart .tlChart .meta { font-size: 10.5px; margin: 0 20px 4px; }
@@ -222,8 +226,10 @@
 
 <div id="attrView" hidden>
   <div id="attrIntro"></div>
-  <div id="attrChart"></div>
-  <div class="tableWrap" id="attrWrap"></div>
+  <div id="attrBody">
+    <div class="tableWrap" id="attrWrap"></div>
+    <div id="attrChart"></div>
+  </div>
 </div>
 
 <div id="tlView" hidden>
@@ -1490,14 +1496,17 @@ function renderAttribution() {
     'AI apps and carry no web session. CVR = traffic-related trials ÷ page-level engaged sessions on all Connect AI pages ' +
     '(all traffic) — sessions of the last two days are still settling in GA4, so the newest week reads high.</p>';
 
-  // ---- chart: stacked weekly bars + CVR line
-  const W = 1000, H = 250, PX0 = 30, PX1 = 985, PY0 = 26, PY1 = 195;
+  // ---- chart: stacked weekly bars + CVR line. The viewBox width follows the
+  // week count with a tight slot per bar, so few weeks render as a large chart
+  // with closely spaced bars instead of a sparse full-width one.
   const n = weeks.length;
-  const xc = (i) => PX0 + ((i + 0.5) * (PX1 - PX0)) / n;
-  const bw = Math.min(90, ((PX1 - PX0) / n) * 0.5);
+  const SLOT = 120, PX0 = 30;
+  const PX1 = PX0 + n * SLOT, W = PX1 + 42, H = 250, PY0 = 26, PY1 = 195;
+  const xc = (i) => PX0 + (i + 0.5) * SLOT;
+  const bw = SLOT * 0.66;
   const maxTot = Math.max(...weeks.map((w) => w.total), 1) * 1.12;
   const yb = (v) => PY1 - (v / maxTot) * (PY1 - PY0);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="inherit" style="max-width:900px">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="inherit" style="max-width:${Math.round(W * 1.35)}px">`;
   for (let t = 0; t <= 4; t++) {
     const v = Math.round((maxTot / 4) * t), gy = yb(v);
     svg += `<line x1="${PX0}" y1="${gy}" x2="${PX1}" y2="${gy}" stroke="#d9d6d2"/>` +
@@ -1516,7 +1525,8 @@ function renderAttribution() {
       svg += `<rect x="${xc(i) - bw / 2}" y="${yTop}" width="${bw}" height="${h}" fill="${catMeta(c)[2]}" stroke="#f9f9f7" stroke-width="0.5"/>`;
     }
     svg += `<text x="${xc(i)}" y="${yTop - 4}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#15151c">${fmtInt(w.total)}</text>` +
-      `<text x="${xc(i)}" y="${PY1 + 13}" text-anchor="middle" font-size="9.5" fill="#5e5d60">${wkLabel(w)}</text>` +
+      `<text x="${xc(i)}" y="${PY1 + 13}" text-anchor="middle" font-size="9.5" fill="#5e5d60">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}</text>` +
+      `<text x="${xc(i)}" y="${PY1 + 25}" text-anchor="middle" font-size="8.5" fill="#777577">${fmtDM(w.from)}–${fmtDM(w.to)}</text>` +
       `<rect x="${xc(i) - bw / 2 - 6}" y="${PY0}" width="${bw + 12}" height="${PY1 - PY0}" fill="transparent"><title>${esc(tip)}</title></rect></g>`;
   });
   // CVR line for the traffic-related trials (own hidden scale)
@@ -1540,14 +1550,19 @@ function renderAttribution() {
     `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;border-top:2px dashed #15151c;margin:0 4px 3px 0"></span>CVR (traffic-related trials ÷ engaged sessions)</span>`;
   $('attrChart').innerHTML = svg + `<div class="meta" style="margin:2px 20px 14px">${legend}</div>`;
 
-  // ---- weekly table: categories × weeks
-  const cols = weeks.map((w) => `<th>${wkLabel(w)}</th>`).join('');
+  // ---- weekly table: categories × weeks (wrapped two-line headers keep columns narrow)
+  const cols = weeks.map((w) => `<th>CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br>${fmtDM(w.from)}–${fmtDM(w.to)}</th>`).join('');
   let rows = '';
   for (const c of catIds) {
     if (!weeks.some((w) => w.cats[c])) continue;
     const [, label, color] = catMeta(c);
     rows += `<tr class="evt"><th><span style="display:inline-block;width:8px;height:8px;background:${color};border:1px solid #b5b9bc;margin-right:5px"></span>${esc(label)}</th>` +
-      weeks.map((w) => `<td>${fmtInt(w.cats[c] || 0)}</td>`).join('') + '</tr>';
+      weeks.map((w) => {
+        const v = w.cats[c] || 0;
+        if (!w.total) return '<td>–</td>';
+        const sh = (v / w.total) * 100;
+        return `<td>${sh.toFixed(sh > 0 && sh < 9.95 ? 1 : 0)}% <small style="color:var(--muted)">(${fmtInt(v)})</small></td>`;
+      }).join('') + '</tr>';
   }
   rows += `<tr class="trials"><th>Traffic-related trials (paid + organic + direct + other web)</th>${weeks.map((w) => `<td>${fmtInt(w.traffic)}</td>`).join('')}</tr>` +
     `<tr class="trials"><th>All trials</th>${weeks.map((w) => `<td>${fmtInt(w.total)}</td>`).join('')}</tr>` +

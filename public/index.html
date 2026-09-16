@@ -141,6 +141,14 @@
   /* experiment titles in the timeline charts link to their Website Experiments row */
   #tlCharts text.expLink { cursor: pointer; fill: var(--accent); }
   #tlCharts text.expLink:hover { text-decoration: underline; }
+  /* compact experiment-summary table on the CAI tab */
+  .expSum table { border-collapse: collapse; margin: 0 12px 10px; }
+  .expSum th, .expSum td { padding: 4px 12px; border: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .expSum thead th { background: var(--head-bg); text-align: center; }
+  .expSum tbody th { text-align: left; background: var(--label-bg); }
+  .expSum span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
+  .expSum span.expLink:hover { text-decoration: underline; }
+  .expSum .rangeHead .meta { font-size: 10px; }
   #expWrap tr.flash td { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .35); transition: box-shadow .4s; }
   /* weekly summary: centered values (row labels and the corner stay left-aligned) */
   #weeklyWrap td, #weeklyWrap thead th { text-align: center; }
@@ -611,35 +619,43 @@ function renderRangeTables(pattern, days, weeks) {
   const allDates = weeks.flatMap((w) => w.dates);
   const snapEnd = PAYLOAD.snapshot.endDate;
 
-  // Experiment evaluation periods: configured presets plus the evaluation
-  // ranges of every web experiment whose affected URL is this pattern.
-  // Shown side by side AND positioned under their dates in the daily grid;
-  // non-overlapping ranges share one aligned table ("lane"), overlaps open
-  // further lanes below.
-  // aligned layout: experiment periods sit under the same date columns as the
-  // daily table (scroll-synced); stretches without experiments render as
-  // blank cells — visible blocks only where an experiment ran
-  const expRanges = (PAYLOAD.experiments || [])
-    .filter((x) => x.url === pattern.id && x.implDate)
-    .map((x) => ({ start: evalStart(x.implDate), end: x.evalEnd || snapEnd, title: x.title || '' }));
-  const seen = new Set();
-  const presets = [...(pattern.presetRanges || []).map((r) => ({ start: r.start, end: r.end || snapEnd, title: '' })), ...expRanges]
-    .filter((r) => { const k = r.start + '|' + r.end; if (seen.has(k)) return false; seen.add(k); return true; })
-    .sort((a, b) => (a.start < b.start ? -1 : 1));
-  const lanes = [];
-  for (const r of presets) {
-    let lane = lanes.find((L) => L.every((x) => x.end < r.start || x.start > r.end));
-    if (!lane) lanes.push((lane = []));
-    lane.push(r);
-  }
-  lanes.forEach((lane, i) => {
+  // Experiment evaluation periods: one compact row per experiment with its
+  // numbers aggregated over the evaluation window (the date-aligned daily
+  // breakdown was removed 2026-09-16 per Christof). Titles jump to the
+  // experiment's row on the Website Experiments tab.
+  const exps = (PAYLOAD.experiments || []).filter((x) => x.url === pattern.id && x.implDate)
+    .sort((a, b) => b.implDate.localeCompare(a.implDate)); // newest first, like the experiments tab
+  if (exps.length) {
+    const metric = trendMetricOf(days);
+    const trials = PAYLOAD.snapshot?.trials ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
+    const tStart = PAYLOAD.snapshot?.trialsStart || '';
+    const yr = (s) => `${fmtShort(s)}${s.slice(2, 4)}`;
+    const rowsHtml = exps.map((x) => {
+      const start = evalStart(x.implDate);
+      const end = x.evalEnd || snapEnd;
+      const dts = allDates.filter((d) => d >= start && d <= end);
+      const sess = sessSum(days, dts, 'all');
+      const clicks = eventSum(days, dts, metric.events, 'all');
+      const tracked = trials && tStart ? dts.filter((d) => d >= tStart) : [];
+      const tr = tracked.length ? tracked.reduce((a, d) => a + (trials[d]?.all ?? 0), 0) : null;
+      const trSess = tracked.length ? sessSum(days, tracked, 'all') : 0;
+      const idx = (PAYLOAD.experiments || []).indexOf(x);
+      return `<tr><th><span class="expLink" data-exp="${idx}" title="Open on the Website Experiments tab">${esc(x.title || '(untitled)')}</span></th>` +
+        `<td>${yr(start)} – ${x.evalEnd ? yr(end) : 'running'}</td><td>${dts.length}</td>` +
+        `<td>${fmtInt(sess)}</td><td>${fmtInt(clicks)}</td><td>${sess ? ((clicks / sess) * 100).toFixed(1) + '%' : '–'}</td>` +
+        `<td>${tr === null ? '–' : fmtInt(tr)}</td><td>${tr === null || !trSess ? '–' : ((tr / trSess) * 100).toFixed(1) + '%'}</td></tr>`;
+    }).join('');
     const card = document.createElement('section');
-    card.className = 'rangeCard aligned';
+    card.className = 'rangeCard expSum';
     card.innerHTML =
-      `<div class="rangeHead"><strong>Experiment evaluation periods${lanes.length > 1 ? ` (${i + 1}/${lanes.length})` : ''}</strong></div>` +
-      `<div class="tableWrap">${buildRangeTable(pattern, days, weeks, lane, 'ranges')}</div>`;
+      `<div class="rangeHead"><strong>Experiment evaluation periods</strong>` +
+      `<span class="meta">aggregated over each window · All traffic${metric.fallback ? ' · button-click fallback (no trial-intent events on this pattern)' : ''}` +
+      `${tStart ? ` · trials tracked since ${yr(tStart)}` : ''}</span></div>` +
+      `<div class="tableWrap"><table><thead><tr><th>Experiment</th><th>Period</th><th>Days</th><th>Engaged Sessions</th>` +
+      `<th>${metric.fallback ? 'all_button_clicks' : 'free trial clicks'}</th><th>CTR</th><th>Started Trials</th><th>CVR</th></tr></thead>` +
+      `<tbody>${rowsHtml}</tbody></table></div>`;
     wrap.appendChild(card);
-  });
+  }
 
   customRanges.forEach((r, idx) => {
     const card = document.createElement('section');
@@ -710,10 +726,7 @@ $('rangeApply').addEventListener('click', () => {
 // experiment titles in the timeline charts jump to the experiment's row on
 // the Website Experiments tab (clearing an active URL filter if it would
 // hide the row), with a short highlight
-$('tlCharts').addEventListener('click', (e) => {
-  const t = e.target.closest('text.expLink');
-  if (!t) return;
-  const idx = Number(t.dataset.exp);
+function jumpToExperiment(idx) {
   const exp = (PAYLOAD.experiments || [])[idx];
   if (!exp) return;
   if (expUrlFilter && expUrlFilter !== exp.url) {
@@ -727,6 +740,15 @@ $('tlCharts').addEventListener('click', (e) => {
   row.scrollIntoView({ behavior: 'smooth', block: 'center' });
   row.classList.add('flash');
   setTimeout(() => row.classList.remove('flash'), 2200);
+}
+$('tlCharts').addEventListener('click', (e) => {
+  const t = e.target.closest('text.expLink');
+  if (t) jumpToExperiment(Number(t.dataset.exp));
+});
+// experiment titles in the evaluation-periods summary table jump too
+$('rangeTables').addEventListener('click', (e) => {
+  const t = e.target.closest('span.expLink');
+  if (t) jumpToExperiment(Number(t.dataset.exp));
 });
 
 // ---- top-level views: AI CTR Dashboard / Web experiments -------------------

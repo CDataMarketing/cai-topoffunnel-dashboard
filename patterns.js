@@ -142,6 +142,16 @@ const PATTERNS = [
     events: ['cc_ai_free_trial', 'cc_ai_product_tour'],
   },
   {
+    id: 'ai-lp-campaign',
+    example: 'https://www.cdata.com/ai/lp/claude-linkedin-ads/',
+    label: '/ai/lp/[campaign-slug]/',
+    scope: 'ai',
+    // campaign landing pages (per Christof, 2026-09-16) — any single slug, so
+    // newly launched campaigns show up automatically
+    regex: '^/ai/lp/[^/]+/(\\?.*)?$',
+    events: [],
+  },
+  {
     id: 'ai-integrations-llm',
     example: 'https://www.cdata.com/ai/integrations/anthropic/',
     label: '/ai/integrations/[LLM]/',

@@ -157,10 +157,12 @@
   /* Funnel View tab */
   #funnelView { padding: 6px 20px 30px; }
   #funnelView .tlIntro { max-width: none; }
-  #funnelBody { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+  #funnelBody { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
   #funnelSpine { flex: 1 1 560px; min-width: 480px; display: flex; flex-direction: column; align-items: center; }
   #funnelSide { flex: 1 1 320px; min-width: 300px; display: flex; flex-direction: column; gap: 14px; }
-  .funnelStage { border: 1px solid var(--border-strong); border-radius: 4px; padding: 10px 16px 12px; background: var(--label-bg); }
+  .funnelStage { border: 1px solid var(--border-strong); border-radius: 4px; padding: 10px 16px 12px; background: var(--label-bg); text-align: center; }
+  .funnelStage details > summary { font-size: 10px; color: var(--muted); cursor: pointer; margin: 6px 0 0; user-select: none; list-style-position: inside; }
+  .funnelStage details[open] p, .funnelStage details[open] .fpat { text-align: left; }
   #funnelSpine .funnelStage { margin-bottom: 4px; }
   .funnelStage h3 { margin: 0 0 2px; font-size: 12.5px; }
   .funnelStage .frole { color: var(--muted); font-style: italic; margin: 0 0 6px; }
@@ -210,7 +212,7 @@
     <button data-view="ctr">CAI Traffic, CTR &amp; Trials</button>
     <button data-view="tl">Experiment Timeline</button>
     <button data-view="exp">Website Experiments</button>
-    <button data-view="funnel">Funnel View</button>
+    <button data-view="funnel">Visitor Intent (paid)</button>
   </nav>
   <span class="meta" id="rangeMeta"></span>
   <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
@@ -1504,7 +1506,7 @@ function renderFunnel() {
     }
     return { all, paid, tr };
   };
-  const patLabel = (pid) => (PAYLOAD.patterns.find((p) => p.id === pid) || { label: pid }).label;
+  const patLabel = (pid) => ((PAYLOAD.patterns.find((p) => p.id === pid) || { label: pid }).label).replace(' (main page)', '');
   const stageHtml = (cat, width) => {
     const s = stats(cat);
     const chips = cat.patterns.map((pid) => `<span class="funnelChip" data-pattern="${pid}" title="Open on the CAI Traffic, CTR & Trials tab">${esc(patLabel(pid))}</span>`).join('');
@@ -1516,9 +1518,10 @@ function renderFunnel() {
     return `<div class="funnelStage" style="${width ? `width:${width}%;` : ''}background:${FUNNEL_TINTS[cat.id] || 'var(--label-bg)'}">` +
       `<h3>${esc(cat.name)}</h3><div class="frole">${esc(cat.role)}</div>` +
       `<div>${chips}</div>` +
+      `<details><summary>Numbers, search intent & CTA intention</summary>` +
       `<div class="fnums">${fmtInt(s.all)} engaged sessions <small>(${fmtInt(s.paid)} paid${paidStr})</small> · ${fmtInt(s.tr)} started trials</div>` +
       `<p>${esc(cat.intent)}</p>` + perPattern +
-      `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></div>`;
+      `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></details></div>`;
   };
   $('funnelIntro').innerHTML =
     `<p class="tlIntro">The Connect AI funnel by page type: the spine runs top-of-funnel → mid-funnel (block width = funnel depth), ` +

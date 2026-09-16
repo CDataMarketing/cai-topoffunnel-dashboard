@@ -1499,22 +1499,21 @@ function renderFunnel() {
     return d0.toISOString().slice(0, 10);
   })();
   const stats = (cat) => {
-    let all = 0, paid = 0, tr = 0;
+    let all = 0, paid = 0, org = 0, tr = 0;
     for (const pid of cat.patterns) {
       for (const [ds, v] of Object.entries(PAYLOAD.snapshot.data[pid] || {})) {
         if (ds < from || ds > end) continue;
-        all += (v.s?.all) || 0; paid += (v.s?.paid) || 0;
+        all += (v.s?.all) || 0; paid += (v.s?.paid) || 0; org += (v.s?.organic) || 0;
       }
       const t = PAYLOAD.snapshot.trials?.[pid] || {};
       for (const [ds, v] of Object.entries(t)) { if (ds >= from && ds <= end) tr += v.all || 0; }
     }
-    return { all, paid, tr };
+    return { all, paid, org, tr };
   };
   const patLabel = (pid) => ((PAYLOAD.patterns.find((p) => p.id === pid) || { label: pid }).label).replace(' (main page)', '');
   const stageHtml = (cat, width) => {
     const s = stats(cat);
     const chips = cat.patterns.map((pid) => `<span class="funnelChip" data-pattern="${pid}" title="Open on the CAI Traffic, CTR & Trials tab">${esc(patLabel(pid))}</span>`).join('');
-    const paidStr = cat.paidSessions ? ` · paid search ${fmtInt(cat.paidSessions.search)}${cat.paidSessions.display ? ` / display ${fmtInt(cat.paidSessions.display)}` : ''}` : '';
     const perPattern = cat.patternIntents
       ? Object.entries(cat.patternIntents).map(([pid, txt]) =>
           `<p class="fpat"><code>${esc(patLabel(pid))}</code> — ${esc(txt)}</p>`).join('')
@@ -1523,9 +1522,9 @@ function renderFunnel() {
       `<h3>${esc(cat.name)}</h3><div class="frole">${esc(cat.role)}</div>` +
       `<div>${chips}</div>` +
       `<details><summary>Numbers, search intent & CTA intention</summary>` +
-      `<div class="fnums">${fmtInt(s.all)} engaged sessions <small>(${fmtInt(s.paid)} paid${paidStr})</small> · ${fmtInt(s.tr)} started trials</div>` +
-      `<p><strong>Paid search intent:</strong> ${esc(cat.intent)}</p>` + perPattern +
-      (cat.organicIntent ? `<p><strong>Organic search intent:</strong> ${esc(cat.organicIntent)}</p>` : '') +
+      `<div class="fnums">${fmtInt(s.all)} engaged sessions · ${fmtInt(s.tr)} started trials</div>` +
+      `<p><strong>Paid search intent (${fmtInt(s.paid)} paid engaged sessions):</strong> ${esc(cat.intent)}</p>` + perPattern +
+      (cat.organicIntent ? `<p><strong>Organic search intent (${fmtInt(s.org)} organic engaged sessions):</strong> ${esc(cat.organicIntent)}</p>` : '') +
       `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></details></div>`;
   };
   $('funnelIntro').innerHTML =

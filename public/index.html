@@ -1533,7 +1533,7 @@ function renderFunnel() {
     `anywhere — the order shows depth of intent, not a sequence pages must be walked through. Numbers cover the analysis window ` +
     `(${fmtShort(from)}–${fmtShort(end)}${end.slice(2, 4)}); trials counted since tracking began. Click a URL pattern to open it on the CAI tab.</p>` +
     (fi.method ? `<p class="tlIntro"><strong>How the intent readings are made</strong> (${esc(fi.window)}): ` +
-      esc(fi.method).replace('based on the actual Google search terms', '<strong>based on the actual Google search terms</strong>') + '</p>' : '');
+      esc(fi.method).replace('based on the actual Google Ads search terms', '<strong>based on the actual Google Ads search terms</strong>') + '</p>' : '');
   const byId = Object.fromEntries(fi.categories.map((c) => [c.id, c]));
   const spineOrder = [['gateway', 100], ['hub', 86], ['entity', 72], ['pair', 58]];
   $('funnelSpine').innerHTML = spineOrder
@@ -1750,7 +1750,7 @@ async function load() {
     btn.style.display = 'none';
     const stamp = document.createElement('span');
     stamp.className = 'meta';
-    stamp.textContent = `Data as of ${PAYLOAD.snapshot?.endDate ?? '—'} · refreshed automatically every Monday`;
+    stamp.textContent = `Data as of ${PAYLOAD.snapshot?.endDate ?? '—'}`;
     btn.after(stamp);
     fetch(API + '/api/refresh', { signal: AbortSignal.timeout(1500) })
       .then((r) => { if (r.ok) { btn.style.display = ''; stamp.remove(); } })

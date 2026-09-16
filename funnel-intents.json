@@ -3,7 +3,7 @@
   "updated": "2026-09-16",
   "statsFrom": "2026-08-19",
   "statsTo": "2026-09-15",
-  "method": "The intent readings are based on the actual Google search terms behind each page's paid clicks, as matched by Google to our booked keywords — read together per page type, this reveals the intent each page actually receives.",
+  "method": "The intent readings are based on the actual Google Ads search terms behind each page's paid clicks, as matched by Google Ads to our booked keywords — read together per page type, this reveals the intent each page actually receives.",
   "categories": [
     {
       "id": "gateway",

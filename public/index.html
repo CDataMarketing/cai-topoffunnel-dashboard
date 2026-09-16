@@ -143,7 +143,7 @@
   #tlCharts text.expLink:hover { text-decoration: underline; }
   /* compact experiment-summary table on the CAI tab */
   .expSum table { border-collapse: collapse; margin: 0 12px 10px; }
-  .expSum th, .expSum td { padding: 4px 12px; border: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .expSum th, .expSum td { padding: 4px 12px; border: 1px solid var(--border); text-align: center; white-space: nowrap; }
   .expSum thead th { background: var(--head-bg); text-align: center; }
   .expSum tbody th { text-align: left; background: var(--label-bg); }
   .expSum span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
@@ -624,46 +624,32 @@ function renderRangeTables(pattern, days, weeks) {
   // breakdown was removed 2026-09-16 per Christof). Titles jump to the
   // experiment's row on the Website Experiments tab.
   const exps = (PAYLOAD.experiments || []).filter((x) => x.url === pattern.id && x.implDate)
-    .sort((a, b) => b.implDate.localeCompare(a.implDate)); // newest first, like the experiments tab
+    .sort((a, b) => a.implDate.localeCompare(b.implDate)); // chronological, newest on the right
   if (exps.length) {
-    const metric = trendMetricOf(days);
-    const trials = PAYLOAD.snapshot?.trials ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
     const tStart = PAYLOAD.snapshot?.trialsStart || '';
     const yr = (s) => `${fmtShort(s)}${s.slice(2, 4)}`;
-    // metrics on rows, one column per experiment period (newest first)
-    const cols = exps.map((x) => {
+    // full weekly-summary metric rows, one column per experiment period —
+    // rendered by the same table builder as the daily/weekly tables
+    const expCols = exps.map((x) => {
       const start = evalStart(x.implDate);
       const end = x.evalEnd || snapEnd;
       const dts = allDates.filter((d) => d >= start && d <= end);
-      const sess = sessSum(days, dts, 'all');
-      const clicks = eventSum(days, dts, metric.events, 'all');
-      const tracked = trials && tStart ? dts.filter((d) => d >= tStart) : [];
-      const tr = tracked.length ? tracked.reduce((a, d) => a + (trials[d]?.all ?? 0), 0) : null;
-      const trSess = tracked.length ? sessSum(days, tracked, 'all') : 0;
       return {
-        head: `<th><span class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(x)}" title="Open on the Website Experiments tab">${esc(x.title || '(untitled)')}</span></th>`,
-        period: `${yr(start)} – ${x.evalEnd ? yr(end) : 'running'}`,
-        days: dts.length,
-        sess: fmtInt(sess),
-        clicks: fmtInt(clicks),
-        ctr: sess ? ((clicks / sess) * 100).toFixed(1) + '%' : '–',
-        trials: tr === null ? '–' : fmtInt(tr),
-        cvr: tr === null || !trSess ? '–' : ((tr / trSess) * 100).toFixed(1) + '%',
+        label: `<span class="expLink" data-exp="${(PAYLOAD.experiments || []).indexOf(x)}" title="Open on the Website Experiments tab">${esc(x.title || '(untitled)')}</span>` +
+          `<br><small style="font-weight:400">${yr(start)} – ${x.evalEnd ? yr(end) : 'running'} · ${dts.length}d</small>`,
+        dates: dts,
+        weekstart: true,
       };
-    });
-    const row = (label, key) => `<tr><th>${label}</th>${cols.map((c) => `<td>${c[key]}</td>`).join('')}</tr>`;
-    const card = document.createElement('section');
-    card.className = 'rangeCard expSum';
-    card.innerHTML =
-      `<div class="rangeHead"><strong>Experiment evaluation periods</strong>` +
-      `<span class="meta">aggregated over each window · All traffic${metric.fallback ? ' · button-click fallback (no trial-intent events on this pattern)' : ''}` +
-      `${tStart ? ` · trials tracked since ${yr(tStart)}` : ''}</span></div>` +
-      `<div class="tableWrap"><table><thead><tr><th>Metric</th>${cols.map((c) => c.head).join('')}</tr></thead><tbody>` +
-      row('Period', 'period') + row('Days', 'days') + row('Engaged Sessions', 'sess') +
-      row(metric.fallback ? 'all_button_clicks' : 'free trial clicks', 'clicks') + row('↳ CTR', 'ctr') +
-      row('Started Trials', 'trials') + row('↳ CVR', 'cvr') +
-      '</tbody></table></div>';
-    wrap.appendChild(card);
+    }).filter((c) => c.dates.length);
+    if (expCols.length) {
+      const card = document.createElement('section');
+      card.className = 'rangeCard expSum';
+      card.innerHTML =
+        `<div class="rangeHead"><strong>Experiment evaluation periods</strong>` +
+        `<span class="meta">aggregated over each window${tStart ? ` · trials tracked since ${yr(tStart)}` : ''}</span></div>` +
+        `<div class="tableWrap">${buildTable(pattern, days, expCols, null)}</div>`;
+      wrap.appendChild(card);
+    }
   }
 
   customRanges.forEach((r, idx) => {

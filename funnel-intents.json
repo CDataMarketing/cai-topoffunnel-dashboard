@@ -3,7 +3,7 @@
   "updated": "2026-09-16",
   "statsFrom": "2026-08-19",
   "statsTo": "2026-09-15",
-  "method": "The intent readings are based on the actual Google Ads search terms behind each page's paid clicks, as matched by Google Ads to our booked keywords — read together per page type, this reveals the intent each page actually receives.",
+  "method": "The intent readings are based on the actual Google Ads search terms behind each page's paid clicks, as matched by Google Ads to our booked keywords — read together per page type, this reveals the intent each page actually receives. The organic notes below each analysis come from Google Search Console queries for the same pages (last 28 days; Google hides rare queries, so listed queries understate the long tail).",
   "categories": [
     {
       "id": "gateway",
@@ -13,6 +13,7 @@
       "paidSessions": { "search": 587, "display": 350, "demandgen": 0 },
       "topTerms": ["cdata", "cdata software", "cdata pricing", "cdata connect ai"],
       "intent": "Almost purely brand-navigational: \"cdata\" and spelling variants make up ~90% of paid search clicks — people looking for the company they already know (a few pricing and product add-ons). Paid search here is brand protection; a third of paid sessions are Display retargeting with no query intent.",
+      "organicIntent": "Identical intent, different scale: organic carries the same brand navigation at roughly 2.5× the paid volume (1,438 listed clicks, ~90% \"cdata\" and misspellings at positions 1–3). Paid brand search duplicates what organic already wins — its value is defensive (owning the brand SERP), not incremental reach.",
       "cta": "Segment, don't sell: equal-weight trial and demo paths, persona routing."
     },
     {
@@ -28,6 +29,7 @@
         "ai": "Platform-level shoppers: \"mcp server\", \"cdata connect ai\", \"model context protocol\", plus a clear SAP MCP demand pocket. Broadest broad-match leakage of all patterns (krea, openrouter, vercel, \"medical ai\").",
         "ai-connect-main": "No paid ad traffic lands here — the integrations directory is reached by navigation, not by ads."
       },
+      "organicIntent": "Complementary by channel: organic adds brand-product navigation (\"cdata connect ai\", 235 clicks at position 1 on /ai/) and AI-assistant-style questions ranking at positions 2–4 (\"can i use cdata connect ai with anthropic mcp tunnels?\") — while the integrations pages earn ZERO organic clicks; their decision-stage traffic is entirely paid.",
       "cta": "Convert now: trial with minimum ceremony; proof (certification, logos) as support."
     },
     {
@@ -42,6 +44,7 @@
         "ai-connect-datasource": "The workhorse (~2,260 paid search sessions): pure \"[system] mcp (server)\" queries, exact-matched to the booked keywords of the same name.",
         "ai-connect-llm": "Thin paid traffic (~70 sessions), almost all of it \"servicenow mcp\" queries landing on /ai/connect/servicenow/ — the other agent pages receive nearly no paid search."
       },
+      "organicIntent": "The sharpest paid/organic split: the paid head terms rank around position 49 organically (invisible) — paid buys exactly what organic cannot reach. Organic contributes only the exotic source tail no campaign covers (tally, snapchat, facebook-ads, sage-intacct MCP); without paid, these pages have almost no traffic.",
       "cta": "Convert the convinced, route the specific: trial primary, the matching pair page as deliberate secondary."
     },
     {
@@ -56,6 +59,7 @@
         "ai-connect-ds-to-llm": "AI pair questions (X + Claude/Copilot/ChatGPT), plus the partnership-news sub-stream on salesforce-to-claude.",
         "data-access-ds-to-consumer": "Small (~56 paid search sessions) but the same shape for BI: \"tableau salesforce\", \"connect excel to quickbooks\" — classic tool-pair feasibility questions."
       },
+      "organicIntent": "Same pair intent in both channels, but organic spans a far broader source/agent matrix and ranks at positions 2–6 without winning the click — ~95% of the pattern's 961 organic clicks come from queries too rare for Search Console to list, and the visible \"how to connect X to Y?\" questions lose the click to the SERP itself (AI Overviews/snippets) — exactly what the How-it-works change targets. /data/access/ adds paid-untouched demand: healthcare integrations (FHIR/HL7, ~7k impressions, no clicks) and BI pairs.",
       "cta": "Reward the answer: trial framed as step 1 of the how-to they came for; KB guide as zero-commitment secondary."
     },
     {
@@ -69,6 +73,7 @@
       "patternIntents": {
         "drivers-ds-powerbi": "Product-seeking, not connectivity-seeking — the intent arrives one product away from Connect AI and must be bridged, not converted directly."
       },
+      "organicIntent": "Both channels see the same product-seeking intent (\"xero/quickbooks to power bi\", including a 1,690-impression Spanish query), but organic ranks 5–8 against Microsoft-owned SERPs and wins ~1 click in 28 days — the bridge's audience import is effectively paid-only today.",
       "cta": "Offer the fork: get-what-you-came-for (driver/BI) and the Connect AI alternative, equal standing."
     },
     {
@@ -79,6 +84,7 @@
       "paidSessions": { "search": 0, "display": 0, "demandgen": 0 },
       "topTerms": [],
       "intent": "Essentially no paid traffic — these pages earn organic long-tail \"how to connect X to Y\" searches and serve trialists mid-setup. Their visitors' intent is executional (follow steps), not evaluative; the open gap is instrumentation: no cc_ai_* events fire here, so their contribution is only visible via entry attribution.",
+      "organicIntent": "The mirror image of the decision hubs: zero paid, yet organically the funnel's strongest pattern — 647 listed clicks (Japanese queries excluded) at positions 1–8 on executional how-tos (teams claude, claude onenote, copilot studio snowflake, claude for sheets, power automate salesforce). Paid harvests decision intent on the hubs; the KB harvests make-it-work intent — the two ends of the funnel, cleanly divided by channel.",
       "cta": "Unblock, don't persuade: account prerequisite before step 1, deepen-usage nudge after the last step."
     }
   ]

@@ -1,7 +1,7 @@
 {
   "window": "19.08.–15.09.2026",
   "updated": "2026-09-16",
-  "method": "The intent readings come from the actual Google searches behind our paid clicks: whenever someone lands on one of these pages from a Google ad, the ad group is recorded in the landing URL, and Google Ads reports which search term triggered that ad group and which of our booked keywords it was matched to. Google decides that match against the keywords we book (verified for this account: every search click in the window was keyword-matched — none came from formats where Google matches on page content instead, such as Dynamic Search Ads). So the terms show what visitors typed, the keywords show what we bid on, and reading them together per page type reveals the intent each page actually receives. Display and Demand-Gen clicks carry no search query — their share is stated where relevant.",
+  "method": "The intent readings are based on the actual Google search terms behind each page's paid clicks, as matched by Google to our booked keywords — read together per page type, this reveals the intent each page actually receives.",
   "categories": [
     {
       "id": "gateway",

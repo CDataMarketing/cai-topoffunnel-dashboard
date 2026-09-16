@@ -1491,9 +1491,13 @@ const FUNNEL_TINTS = { gateway: '#fffdfa', hub: '#fffacc', entity: '#dbe4f0', pa
 function renderFunnel() {
   const fi = PAYLOAD.funnelIntents;
   if (!fi) { $('funnelIntro').innerHTML = '<p class="tlIntro">No funnel-intent data (funnel-intents.json missing).</p>'; return; }
-  const end = PAYLOAD.snapshot.endDate;
-  const d0 = new Date(end + 'T00:00:00Z'); d0.setUTCDate(d0.getUTCDate() - 27);
-  const from = d0.toISOString().slice(0, 10);
+  // numbers are frozen to the analysis window — the whole tab updates only on
+  // request (a new visitor-intent run rewrites funnel-intents.json)
+  const end = fi.statsTo || PAYLOAD.snapshot.endDate;
+  const from = fi.statsFrom || (() => {
+    const d0 = new Date(end + 'T00:00:00Z'); d0.setUTCDate(d0.getUTCDate() - 27);
+    return d0.toISOString().slice(0, 10);
+  })();
   const stats = (cat) => {
     let all = 0, paid = 0, tr = 0;
     for (const pid of cat.patterns) {
@@ -1524,10 +1528,12 @@ function renderFunnel() {
       `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></details></div>`;
   };
   $('funnelIntro').innerHTML =
-    `<p class="tlIntro">The Connect AI funnel by page type: the spine runs top-of-funnel → mid-funnel (block width = funnel depth), ` +
-    `bridge and knowledge pages feed in from the side. Numbers are the last 28 days (${fmtShort(from)}–${fmtShort(end)}${end.slice(2, 4)}); ` +
-    `trials counted since tracking began. Click a URL pattern to open it on the CAI tab.</p>` +
-    (fi.method ? `<p class="tlIntro"><strong>How the intent readings are made</strong> (${esc(fi.window)}, updated ${esc(fi.updated)}): ${esc(fi.method)}</p>` : '');
+    `<p class="tlIntro">The Connect AI page types by their role on the path to a trial: the spine orders them from broad entry to specific answer ` +
+    `(block width = breadth of intent), bridge and knowledge pages feed in from the side. Visitors enter at any block and can start a trial from ` +
+    `anywhere — the order shows depth of intent, not a sequence pages must be walked through. Numbers cover the analysis window ` +
+    `(${fmtShort(from)}–${fmtShort(end)}${end.slice(2, 4)}); trials counted since tracking began. Click a URL pattern to open it on the CAI tab.</p>` +
+    (fi.method ? `<p class="tlIntro"><strong>How the intent readings are made</strong> (${esc(fi.window)}): ` +
+      esc(fi.method).replace('based on the actual Google search terms', '<strong>based on the actual Google search terms</strong>') + '</p>' : '');
   const byId = Object.fromEntries(fi.categories.map((c) => [c.id, c]));
   const spineOrder = [['gateway', 100], ['hub', 86], ['entity', 72], ['pair', 58]];
   $('funnelSpine').innerHTML = spineOrder

@@ -3,7 +3,7 @@
   "updated": "2026-09-16",
   "statsFrom": "2026-08-19",
   "statsTo": "2026-09-15",
-  "method": "The intent readings are based on the actual Google Ads search terms behind each page's paid clicks, as matched by Google Ads to our booked keywords — read together per page type, this reveals the intent each page actually receives. The organic notes below each analysis come from Google Search Console queries for the same pages (last 28 days; Google hides rare queries, so listed queries understate the long tail).",
+  "method": "The paid intent readings are based on the actual Google Ads search terms behind each page's paid clicks, as matched by Google Ads to our booked keywords — read together per page type, this reveals the intent each page actually receives. The organic intent readings come from Google Search Console's search queries for the same pages over the same 28 days (Search Console hides rare queries, so the visible list understates the long tail).",
   "categories": [
     {
       "id": "gateway",

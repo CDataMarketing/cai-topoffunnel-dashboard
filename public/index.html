@@ -171,8 +171,6 @@
   .funnelStage p { margin: 6px 0 0; }
   .funnelStage .fpat { margin: 4px 0 0; color: var(--muted); }
   .funnelStage .fpat code { font-size: 10px; }
-  .funnelStage .forg { border-left: 3px solid var(--border-strong); padding-left: 8px; }
-  .funnelStage .forg strong { color: var(--muted); }
   .funnelStage .fcta { color: var(--muted); border-top: 1px dashed var(--border); padding-top: 5px; }
   .funnelStage .fcta strong { color: var(--text); }
   .funnelArrow { color: var(--faint); font-size: 15px; line-height: 1; margin: 0 0 4px; }
@@ -214,7 +212,7 @@
     <button data-view="ctr">CAI Traffic, CTR &amp; Trials</button>
     <button data-view="tl">Experiment Timeline</button>
     <button data-view="exp">Website Experiments</button>
-    <button data-view="funnel">Visitor Intent (paid)</button>
+    <button data-view="funnel">Visitor Intent</button>
   </nav>
   <span class="meta" id="rangeMeta"></span>
   <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
@@ -1526,8 +1524,8 @@ function renderFunnel() {
       `<div>${chips}</div>` +
       `<details><summary>Numbers, search intent & CTA intention</summary>` +
       `<div class="fnums">${fmtInt(s.all)} engaged sessions <small>(${fmtInt(s.paid)} paid${paidStr})</small> · ${fmtInt(s.tr)} started trials</div>` +
-      `<p>${esc(cat.intent)}</p>` + perPattern +
-      (cat.organicIntent ? `<p class="forg"><strong>vs. organic:</strong> ${esc(cat.organicIntent)}</p>` : '') +
+      `<p><strong>Paid search intent:</strong> ${esc(cat.intent)}</p>` + perPattern +
+      (cat.organicIntent ? `<p><strong>Organic search intent:</strong> ${esc(cat.organicIntent)}</p>` : '') +
       `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></details></div>`;
   };
   $('funnelIntro').innerHTML =

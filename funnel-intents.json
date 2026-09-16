@@ -1,7 +1,7 @@
 {
   "window": "19.08.–15.09.2026",
   "updated": "2026-09-16",
-  "note": "Paid search intent per funnel category from the visitor-intent analysis (GA4 _bg= ad groups → Google Ads SearchTermView, last 28 days). Display/Demand-Gen sessions carry no query intent — their share is stated where relevant.",
+  "method": "The intent readings come from the actual Google searches behind our paid clicks: whenever someone lands on one of these pages from a Google ad, the ad group is recorded in the landing URL, and Google Ads reports which search term triggered that ad group and which of our booked keywords it was matched to. Google decides that match against the keywords we book (verified for this account: every search click in the window was keyword-matched — none came from formats where Google matches on page content instead, such as Dynamic Search Ads). So the terms show what visitors typed, the keywords show what we bid on, and reading them together per page type reveals the intent each page actually receives. Display and Demand-Gen clicks carry no search query — their share is stated where relevant.",
   "categories": [
     {
       "id": "gateway",
@@ -20,7 +20,12 @@
       "patterns": ["ai", "ai-connect-main", "ai-integrations-llm"],
       "paidSessions": { "search": 2531, "display": 519, "demandgen": 193 },
       "topTerms": ["cdata connect ai", "mcp server", "claude mcp", "claude connectors", "sap mcp", "chatgpt enterprise"],
-      "intent": "Tool shoppers who have decided they need AI-to-data connectivity: brand-product terms (\"cdata connect ai\"), platform terms (\"mcp server\", \"model context protocol\") and agent-led needs (\"claude mcp\", \"claude connectors\", \"chatgpt enterprise\"). Decision-stage and signup-ready — the pattern's ~6.5% paid CVR confirms it. Leakage: competitor/odd brands (viewmax, krea, higgsfield) and Anthropic-navigational queries (chrome extension, API keys) — negative-keyword candidates.",
+      "intent": "Tool shoppers who have decided they need AI-to-data connectivity: brand-product terms (\"cdata connect ai\"), platform terms (\"mcp server\", \"model context protocol\") and agent-led needs (\"claude mcp\", \"claude connectors\", \"chatgpt enterprise\"). Decision-stage and signup-ready — the integrations pattern's ~6.5% paid CVR confirms it.",
+      "patternIntents": {
+        "ai-integrations-llm": "Agent-led decision intent — \"connect Claude/Copilot/ChatGPT to my data\" (claude mcp, claude connectors); the category's strongest converter. Leakage: Anthropic-navigational queries (chrome extension, API keys).",
+        "ai": "Platform-level shoppers: \"mcp server\", \"cdata connect ai\", \"model context protocol\", plus a clear SAP MCP demand pocket. Broadest broad-match leakage of all patterns (krea, openrouter, vercel, \"medical ai\").",
+        "ai-connect-main": "No paid ad traffic lands here — the integrations directory is reached by navigation, not by ads."
+      },
       "cta": "Convert now: trial with minimum ceremony; proof (certification, logos) as support."
     },
     {
@@ -30,7 +35,11 @@
       "patterns": ["ai-connect-llm", "ai-connect-datasource"],
       "paidSessions": { "search": 2333, "display": 0, "demandgen": 1 },
       "topTerms": ["salesforce mcp", "workday mcp", "linkedin mcp", "snowflake mcp", "odoo mcp", "mysql mcp server"],
-      "intent": "Practitioners searching \"[my system] MCP (server)\" — Salesforce, Workday, LinkedIn, Snowflake, Odoo, MySQL, Postgres, ServiceNow lead. Source-led, hands-on intent: they want the concrete connector for their stack, not a category overview. Highly uniform — virtually every top term follows the same shape.",
+      "intent": "Practitioners searching \"[my system] MCP (server)\" — Salesforce, Workday, LinkedIn, Snowflake, Odoo, MySQL, Postgres lead. Source-led, hands-on intent: they want the concrete connector for their stack, not a category overview. Highly uniform — virtually every top term follows the same shape.",
+      "patternIntents": {
+        "ai-connect-datasource": "The workhorse (~2,260 paid search sessions): pure \"[system] mcp (server)\" queries, exact-matched to the booked keywords of the same name.",
+        "ai-connect-llm": "Thin paid traffic (~70 sessions), almost all of it \"servicenow mcp\" queries landing on /ai/connect/servicenow/ — the other agent pages receive nearly no paid search."
+      },
       "cta": "Convert the convinced, route the specific: trial primary, the matching pair page as deliberate secondary."
     },
     {
@@ -41,16 +50,23 @@
       "paidSessions": { "search": 2101, "display": 0, "demandgen": 0 },
       "topTerms": ["salesforce claude", "claude and salesforce", "salesforce anthropic", "claude for microsoft 365", "how to connect claude to salesforce"],
       "intent": "Pair questions, dominated by Salesforce+Claude in every phrasing — visitors researching whether and how two named products work together. A distinct sub-stream expects partnership NEWS (\"salesforce anthropic partnership\", \"claudeforce\") rather than a product page. Research-stage: high CTR interest but 0.7% paid CVR — they read and hand intent onward; the How-it-works experiment (since 17.09) targets exactly this.",
+      "patternIntents": {
+        "ai-connect-ds-to-llm": "AI pair questions (X + Claude/Copilot/ChatGPT), plus the partnership-news sub-stream on salesforce-to-claude.",
+        "data-access-ds-to-consumer": "Small (~56 paid search sessions) but the same shape for BI: \"tableau salesforce\", \"connect excel to quickbooks\" — classic tool-pair feasibility questions."
+      },
       "cta": "Reward the answer: trial framed as step 1 of the how-to they came for; KB guide as zero-commitment secondary."
     },
     {
       "id": "bridge",
       "name": "Bridge pages",
-      "role": "Adjacent product lines (drivers, BI connectors) importing their audience sideways into Connect AI.",
-      "patterns": ["drivers-ds-powerbi", "drivers-ds-mcp", "drivers-ds-cloud"],
-      "paidSessions": { "search": 1446, "display": 0, "demandgen": 0 },
-      "topTerms": ["netsuite mcp", "download power bi", "powerbi online free", "quickbooks online mcp server"],
-      "intent": "Two distinct streams: (1) \"[system] mcp\" seekers landing on the driver MCP pages — same practitioner intent as the entity pages, arriving via the on-prem product line; (2) Power BI product seekers (\"download power bi\", \"power bi for mac\") who want Microsoft's tool itself — the pages' job is to serve the BI need first and offer Connect AI as the cloud path. Several mcp/cloud driver pages now redirect into /ai/connect/ entity pages.",
+      "role": "Adjacent product lines importing their audience sideways into Connect AI.",
+      "patterns": ["drivers-ds-powerbi"],
+      "paidSessions": { "search": 250, "display": 0, "demandgen": 0 },
+      "topTerms": ["download power bi", "powerbi online free", "power bi for mac", "what is power bi"],
+      "intent": "Power BI product seekers: \"download power bi\", \"power bi install\", \"power bi for mac\" — people who want Microsoft's BI tool itself, matched via the \"microsoft office 365 power bi\" keywords. The page's job is to serve that BI need first (Desktop driver) and offer the Connect AI cloud path as the modern alternative.",
+      "patternIntents": {
+        "drivers-ds-powerbi": "Product-seeking, not connectivity-seeking — the intent arrives one product away from Connect AI and must be bridged, not converted directly."
+      },
       "cta": "Offer the fork: get-what-you-came-for (driver/BI) and the Connect AI alternative, equal standing."
     },
     {

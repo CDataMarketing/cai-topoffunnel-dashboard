@@ -167,6 +167,8 @@
   .funnelStage .fnums { font-weight: 600; margin: 6px 0; }
   .funnelStage .fnums small { font-weight: 400; color: var(--muted); }
   .funnelStage p { margin: 6px 0 0; }
+  .funnelStage .fpat { margin: 4px 0 0; color: var(--muted); }
+  .funnelStage .fpat code { font-size: 10px; }
   .funnelStage .fcta { color: var(--muted); border-top: 1px dashed var(--border); padding-top: 5px; }
   .funnelStage .fcta strong { color: var(--text); }
   .funnelArrow { color: var(--faint); font-size: 15px; line-height: 1; margin: 0 0 4px; }
@@ -1507,18 +1509,22 @@ function renderFunnel() {
     const s = stats(cat);
     const chips = cat.patterns.map((pid) => `<span class="funnelChip" data-pattern="${pid}" title="Open on the CAI Traffic, CTR & Trials tab">${esc(patLabel(pid))}</span>`).join('');
     const paidStr = cat.paidSessions ? ` · paid search ${fmtInt(cat.paidSessions.search)}${cat.paidSessions.display ? ` / display ${fmtInt(cat.paidSessions.display)}` : ''}` : '';
+    const perPattern = cat.patternIntents
+      ? Object.entries(cat.patternIntents).map(([pid, txt]) =>
+          `<p class="fpat"><code>${esc(patLabel(pid))}</code> — ${esc(txt)}</p>`).join('')
+      : '';
     return `<div class="funnelStage" style="${width ? `width:${width}%;` : ''}background:${FUNNEL_TINTS[cat.id] || 'var(--label-bg)'}">` +
       `<h3>${esc(cat.name)}</h3><div class="frole">${esc(cat.role)}</div>` +
       `<div>${chips}</div>` +
       `<div class="fnums">${fmtInt(s.all)} engaged sessions <small>(${fmtInt(s.paid)} paid${paidStr})</small> · ${fmtInt(s.tr)} started trials</div>` +
-      `<p>${esc(cat.intent)}</p>` +
+      `<p>${esc(cat.intent)}</p>` + perPattern +
       `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></div>`;
   };
   $('funnelIntro').innerHTML =
     `<p class="tlIntro">The Connect AI funnel by page type: the spine runs top-of-funnel → mid-funnel (block width = funnel depth), ` +
     `bridge and knowledge pages feed in from the side. Numbers are the last 28 days (${fmtShort(from)}–${fmtShort(end)}${end.slice(2, 4)}); ` +
-    `trials counted since tracking began. Paid search intents from the visitor-intent analysis (Google Ads search terms, ${esc(fi.window)}, updated ${esc(fi.updated)}). ` +
-    `Click a URL pattern to open it on the CAI tab.</p>`;
+    `trials counted since tracking began. Click a URL pattern to open it on the CAI tab.</p>` +
+    (fi.method ? `<p class="tlIntro"><strong>How the intent readings are made</strong> (${esc(fi.window)}, updated ${esc(fi.updated)}): ${esc(fi.method)}</p>` : '');
   const byId = Object.fromEntries(fi.categories.map((c) => [c.id, c]));
   const spineOrder = [['gateway', 100], ['hub', 86], ['entity', 72], ['pair', 58]];
   $('funnelSpine').innerHTML = spineOrder

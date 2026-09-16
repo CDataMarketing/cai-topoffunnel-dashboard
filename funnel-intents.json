@@ -1,0 +1,67 @@
+{
+  "window": "19.08.–15.09.2026",
+  "updated": "2026-09-16",
+  "note": "Paid search intent per funnel category from the visitor-intent analysis (GA4 _bg= ad groups → Google Ads SearchTermView, last 28 days). Display/Demand-Gen sessions carry no query intent — their share is stated where relevant.",
+  "categories": [
+    {
+      "id": "gateway",
+      "name": "Brand gateway",
+      "role": "Entry on the brand, not on a need — routes every intent and converts the already-convinced.",
+      "patterns": ["home"],
+      "paidSessions": { "search": 587, "display": 350, "demandgen": 0 },
+      "topTerms": ["cdata", "cdata software", "cdata pricing", "cdata connect ai"],
+      "intent": "Almost purely brand-navigational: \"cdata\" and spelling variants make up ~90% of paid search clicks — people looking for the company they already know (a few pricing and product add-ons). Paid search here is brand protection; a third of paid sessions are Display retargeting with no query intent.",
+      "cta": "Segment, don't sell: equal-weight trial and demo paths, persona routing."
+    },
+    {
+      "id": "hub",
+      "name": "Decision hubs",
+      "role": "Category-level \"I need this tool\" demand — the harvest pages.",
+      "patterns": ["ai", "ai-connect-main", "ai-integrations-llm"],
+      "paidSessions": { "search": 2531, "display": 519, "demandgen": 193 },
+      "topTerms": ["cdata connect ai", "mcp server", "claude mcp", "claude connectors", "sap mcp", "chatgpt enterprise"],
+      "intent": "Tool shoppers who have decided they need AI-to-data connectivity: brand-product terms (\"cdata connect ai\"), platform terms (\"mcp server\", \"model context protocol\") and agent-led needs (\"claude mcp\", \"claude connectors\", \"chatgpt enterprise\"). Decision-stage and signup-ready — the pattern's ~6.5% paid CVR confirms it. Leakage: competitor/odd brands (viewmax, krea, higgsfield) and Anthropic-navigational queries (chrome extension, API keys) — negative-keyword candidates.",
+      "cta": "Convert now: trial with minimum ceremony; proof (certification, logos) as support."
+    },
+    {
+      "id": "entity",
+      "name": "Entity landing pages",
+      "role": "One system or one agent per page — decision-adjacent, splits into trial or deeper pair page.",
+      "patterns": ["ai-connect-llm", "ai-connect-datasource"],
+      "paidSessions": { "search": 2333, "display": 0, "demandgen": 1 },
+      "topTerms": ["salesforce mcp", "workday mcp", "linkedin mcp", "snowflake mcp", "odoo mcp", "mysql mcp server"],
+      "intent": "Practitioners searching \"[my system] MCP (server)\" — Salesforce, Workday, LinkedIn, Snowflake, Odoo, MySQL, Postgres, ServiceNow lead. Source-led, hands-on intent: they want the concrete connector for their stack, not a category overview. Highly uniform — virtually every top term follows the same shape.",
+      "cta": "Convert the convinced, route the specific: trial primary, the matching pair page as deliberate secondary."
+    },
+    {
+      "id": "pair",
+      "name": "Pair / answer pages",
+      "role": "\"Can X talk to Y — and how?\" Mid-funnel feasibility questions; hand intent onward.",
+      "patterns": ["ai-connect-ds-to-llm", "data-access-ds-to-consumer"],
+      "paidSessions": { "search": 2101, "display": 0, "demandgen": 0 },
+      "topTerms": ["salesforce claude", "claude and salesforce", "salesforce anthropic", "claude for microsoft 365", "how to connect claude to salesforce"],
+      "intent": "Pair questions, dominated by Salesforce+Claude in every phrasing — visitors researching whether and how two named products work together. A distinct sub-stream expects partnership NEWS (\"salesforce anthropic partnership\", \"claudeforce\") rather than a product page. Research-stage: high CTR interest but 0.7% paid CVR — they read and hand intent onward; the How-it-works experiment (since 17.09) targets exactly this.",
+      "cta": "Reward the answer: trial framed as step 1 of the how-to they came for; KB guide as zero-commitment secondary."
+    },
+    {
+      "id": "bridge",
+      "name": "Bridge pages",
+      "role": "Adjacent product lines (drivers, BI connectors) importing their audience sideways into Connect AI.",
+      "patterns": ["drivers-ds-powerbi", "drivers-ds-mcp", "drivers-ds-cloud"],
+      "paidSessions": { "search": 1446, "display": 0, "demandgen": 0 },
+      "topTerms": ["netsuite mcp", "download power bi", "powerbi online free", "quickbooks online mcp server"],
+      "intent": "Two distinct streams: (1) \"[system] mcp\" seekers landing on the driver MCP pages — same practitioner intent as the entity pages, arriving via the on-prem product line; (2) Power BI product seekers (\"download power bi\", \"power bi for mac\") who want Microsoft's tool itself — the pages' job is to serve the BI need first and offer Connect AI as the cloud path. Several mcp/cloud driver pages now redirect into /ai/connect/ entity pages.",
+      "cta": "Offer the fork: get-what-you-came-for (driver/BI) and the Connect AI alternative, equal standing."
+    },
+    {
+      "id": "knowledge",
+      "name": "Knowledge pages",
+      "role": "Setup guides and the how-to matrix — wrap around both funnel ends (pre-trial research, in-trial enablement).",
+      "patterns": ["kb-connect-ai"],
+      "paidSessions": { "search": 0, "display": 0, "demandgen": 0 },
+      "topTerms": [],
+      "intent": "Essentially no paid traffic — these pages earn organic long-tail \"how to connect X to Y\" searches and serve trialists mid-setup. Their visitors' intent is executional (follow steps), not evaluative; the open gap is instrumentation: no cc_ai_* events fire here, so their contribution is only visible via entry attribution.",
+      "cta": "Unblock, don't persuade: account prerequisite before step 1, deepen-usage nudge after the last step."
+    }
+  ]
+}

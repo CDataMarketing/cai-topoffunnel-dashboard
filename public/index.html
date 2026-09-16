@@ -154,6 +154,26 @@
   #weeklyWrap td, #weeklyWrap thead th { text-align: center; }
   #weeklyWrap thead th.corner, #weeklyWrap tbody th { text-align: left; }
   #ctrChart { padding: 0; } /* chart spans the entire page width */
+  /* Funnel View tab */
+  #funnelView { padding: 6px 20px 30px; }
+  #funnelView .tlIntro { max-width: none; }
+  #funnelBody { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+  #funnelSpine { flex: 1 1 560px; min-width: 480px; display: flex; flex-direction: column; align-items: center; }
+  #funnelSide { flex: 1 1 320px; min-width: 300px; display: flex; flex-direction: column; gap: 14px; }
+  .funnelStage { border: 1px solid var(--border-strong); border-radius: 4px; padding: 10px 16px 12px; background: var(--label-bg); }
+  #funnelSpine .funnelStage { margin-bottom: 4px; }
+  .funnelStage h3 { margin: 0 0 2px; font-size: 12.5px; }
+  .funnelStage .frole { color: var(--muted); font-style: italic; margin: 0 0 6px; }
+  .funnelStage .fnums { font-weight: 600; margin: 6px 0; }
+  .funnelStage .fnums small { font-weight: 400; color: var(--muted); }
+  .funnelStage p { margin: 6px 0 0; }
+  .funnelStage .fcta { color: var(--muted); border-top: 1px dashed var(--border); padding-top: 5px; }
+  .funnelStage .fcta strong { color: var(--text); }
+  .funnelArrow { color: var(--faint); font-size: 15px; line-height: 1; margin: 0 0 4px; }
+  .funnelChip { display: inline-block; background: var(--evt-bg); border: 1px solid var(--border); border-radius: 3px;
+                padding: 1px 7px; margin: 2px 4px 2px 0; font-family: "DM Mono", "Courier New", monospace; font-size: 10px;
+                cursor: pointer; }
+  .funnelChip:hover { border-color: var(--accent); color: var(--accent); }
   #attrView { padding: 6px 20px 24px; }
   #attrView .tlIntro { max-width: none; } /* explanations span the full app width */
   #attrWrap { max-width: 100%; margin-top: 14px; }
@@ -188,6 +208,7 @@
     <button data-view="ctr">CAI Traffic, CTR &amp; Trials</button>
     <button data-view="tl">Experiment Timeline</button>
     <button data-view="exp">Website Experiments</button>
+    <button data-view="funnel">Funnel View</button>
   </nav>
   <span class="meta" id="rangeMeta"></span>
   <button id="refreshBtn" title="Re-fetch recent days from GA4 via the Connect Engine">Refresh data</button>
@@ -231,6 +252,14 @@
 
 <div id="expView" hidden>
   <div class="tableWrap" id="expWrap" style="max-height:none"></div>
+</div>
+
+<div id="funnelView" hidden>
+  <div id="funnelIntro"></div>
+  <div id="funnelBody">
+    <div id="funnelSpine"></div>
+    <div id="funnelSide"></div>
+  </div>
 </div>
 
 <div id="attrView">
@@ -754,8 +783,10 @@ for (const btn of document.querySelectorAll('#topTabs button')) {
     $('expView').hidden = btn.dataset.view !== 'exp';
     $('tlView').hidden = btn.dataset.view !== 'tl';
     $('attrView').hidden = btn.dataset.view !== 'attr';
+    $('funnelView').hidden = btn.dataset.view !== 'funnel';
     if (btn.dataset.view === 'tl') sizeTimelineLanes();
     if (btn.dataset.view === 'attr') renderAttribution();
+    if (btn.dataset.view === 'funnel') renderFunnel();
     if (btn.dataset.view === 'ctr') {
       // per spec: the CAI tab always opens on the homepage, all traffic
       currentPatternId = 'home';
@@ -1447,6 +1478,62 @@ const italChar = (c) =>
 const optionLabel = (p) => p.label
   .replace(' (main page)', '')
   .replace(/\[([^\]]+)\]/g, (_, s) => '[' + [...s].map(italChar).join('') + ']');
+
+// ---- Funnel View tab ---------------------------------------------------------
+// The six funnel categories with their URL patterns, live 28-day numbers from
+// the snapshot, and the paid-search-intent summaries from funnel-intents.json
+// (written by the visitor-intent analysis).
+const FUNNEL_TINTS = { gateway: '#fffdfa', hub: '#fffacc', entity: '#dbe4f0', pair: '#f1eee9', bridge: '#edeeef', knowledge: '#fffdfa' };
+function renderFunnel() {
+  const fi = PAYLOAD.funnelIntents;
+  if (!fi) { $('funnelIntro').innerHTML = '<p class="tlIntro">No funnel-intent data (funnel-intents.json missing).</p>'; return; }
+  const end = PAYLOAD.snapshot.endDate;
+  const d0 = new Date(end + 'T00:00:00Z'); d0.setUTCDate(d0.getUTCDate() - 27);
+  const from = d0.toISOString().slice(0, 10);
+  const stats = (cat) => {
+    let all = 0, paid = 0, tr = 0;
+    for (const pid of cat.patterns) {
+      for (const [ds, v] of Object.entries(PAYLOAD.snapshot.data[pid] || {})) {
+        if (ds < from || ds > end) continue;
+        all += (v.s?.all) || 0; paid += (v.s?.paid) || 0;
+      }
+      const t = PAYLOAD.snapshot.trials?.[pid] || {};
+      for (const [ds, v] of Object.entries(t)) { if (ds >= from && ds <= end) tr += v.all || 0; }
+    }
+    return { all, paid, tr };
+  };
+  const patLabel = (pid) => (PAYLOAD.patterns.find((p) => p.id === pid) || { label: pid }).label;
+  const stageHtml = (cat, width) => {
+    const s = stats(cat);
+    const chips = cat.patterns.map((pid) => `<span class="funnelChip" data-pattern="${pid}" title="Open on the CAI Traffic, CTR & Trials tab">${esc(patLabel(pid))}</span>`).join('');
+    const paidStr = cat.paidSessions ? ` · paid search ${fmtInt(cat.paidSessions.search)}${cat.paidSessions.display ? ` / display ${fmtInt(cat.paidSessions.display)}` : ''}` : '';
+    return `<div class="funnelStage" style="${width ? `width:${width}%;` : ''}background:${FUNNEL_TINTS[cat.id] || 'var(--label-bg)'}">` +
+      `<h3>${esc(cat.name)}</h3><div class="frole">${esc(cat.role)}</div>` +
+      `<div>${chips}</div>` +
+      `<div class="fnums">${fmtInt(s.all)} engaged sessions <small>(${fmtInt(s.paid)} paid${paidStr})</small> · ${fmtInt(s.tr)} started trials</div>` +
+      `<p>${esc(cat.intent)}</p>` +
+      `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></div>`;
+  };
+  $('funnelIntro').innerHTML =
+    `<p class="tlIntro">The Connect AI funnel by page type: the spine runs top-of-funnel → mid-funnel (block width = funnel depth), ` +
+    `bridge and knowledge pages feed in from the side. Numbers are the last 28 days (${fmtShort(from)}–${fmtShort(end)}${end.slice(2, 4)}); ` +
+    `trials counted since tracking began. Paid search intents from the visitor-intent analysis (Google Ads search terms, ${esc(fi.window)}, updated ${esc(fi.updated)}). ` +
+    `Click a URL pattern to open it on the CAI tab.</p>`;
+  const byId = Object.fromEntries(fi.categories.map((c) => [c.id, c]));
+  const spineOrder = [['gateway', 100], ['hub', 86], ['entity', 72], ['pair', 58]];
+  $('funnelSpine').innerHTML = spineOrder
+    .map(([id, w], i) => (byId[id] ? (i ? '<div class="funnelArrow">▼</div>' : '') + stageHtml(byId[id], w) : ''))
+    .join('');
+  $('funnelSide').innerHTML = ['bridge', 'knowledge'].map((id) => byId[id] ? stageHtml(byId[id], 0) : '').join('');
+}
+// pattern chips jump to the CAI tab with that pattern selected
+$('funnelView').addEventListener('click', (e) => {
+  const chip = e.target.closest('.funnelChip');
+  if (!chip) return;
+  document.querySelector('#topTabs button[data-view="ctr"]').click(); // resets to defaults
+  currentPatternId = chip.dataset.pattern;
+  render();
+});
 
 // ---- Trial Attribution tab --------------------------------------------------
 // Weekly view of ALL started trials (Entry Attribution) by entry category:

@@ -13,6 +13,7 @@ const app = express();
 const PORT = process.env.CTR_PORT || 3010;
 const DATA_FILE = path.join(__dirname, '..', 'data', 'cache', 'ctr-dashboard.json');
 const EXPERIMENTS_FILE = path.join(__dirname, 'experiments.json');
+const FUNNEL_INTENTS_FILE = path.join(__dirname, 'funnel-intents.json');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -48,6 +49,7 @@ app.get('/api/data', (req, res) => {
     patterns: PATTERNS.map(({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example }) => ({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example })),
     snapshot,
     experiments: readExperiments(),
+    funnelIntents: (() => { try { return JSON.parse(fs.readFileSync(FUNNEL_INTENTS_FILE, 'utf8')); } catch { return null; } })(),
   });
 });
 

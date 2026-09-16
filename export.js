@@ -15,10 +15,13 @@ function build() {
   const snapshot = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   let experiments = [];
   try { experiments = JSON.parse(fs.readFileSync(path.join(__dirname, 'experiments.json'), 'utf8')); } catch {}
+  let funnelIntents = null;
+  try { funnelIntents = JSON.parse(fs.readFileSync(path.join(__dirname, 'funnel-intents.json'), 'utf8')); } catch {}
   const payload = {
     patterns: PATTERNS.map(({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example }) => ({ id, label, regex, excludeRegex, events, extraEvents, presetRanges, example })),
     snapshot,
     experiments,
+    funnelIntents,
   };
   const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
   // <-escape so no `</script>` sequence can terminate the embed block

@@ -120,7 +120,13 @@ app.get('/api/refresh', (req, res) => res.json(refreshState));
 // panel in the UI only appears where this server responds.
 const GA4_TABLE = '[GA4-Prod].[GoogleAnalytics4].[GlobalAccessObject]';
 const LOOKUP_START = '2026-05-18'; // dashboard epoch, same as fetch-data.js
+const TRIALS_START = '2026-09-01'; // Entry_Attribution__c fully live, same as fetch-trials.js
 const LOOKUP_CACHE = path.join(__dirname, '..', 'data', 'cache', 'page-lookup');
+
+// Salesforce Source_Category__c -> traffic buckets (mirrors fetch-trials.js)
+const SF_PAID = new Set(['Paid Search', 'Advertising', 'Paid AI', 'Paid Social', 'Paid Shopping', 'Paid Video', 'Display']);
+const SF_ORGANIC = new Set(['Organic Search', 'Organic Social']);
+const sourceBucket = (c) => c === 'Direct' ? 'direct' : SF_PAID.has(c) ? 'paid' : SF_ORGANIC.has(c) ? 'organic' : 'other';
 
 function engineQuery(sql) {
   return new Promise((resolve, reject) => {
@@ -186,7 +192,7 @@ app.get('/api/page-lookup', async (req, res) => {
     const end = yesterdayISO();
     const cacheFile = path.join(LOOKUP_CACHE, `${ds}${llm ? '-to-' + llm : ''}-${end}.json`);
     const cached = readCache(cacheFile);
-    if (cached) return res.json(cached);
+    if (cached && cached.v === 2) return res.json(cached);
     await ensureEngine();
     const zero = () => ({ all: 0, paid: 0, organic: 0, direct: 0 });
     const days = {};
@@ -221,7 +227,27 @@ app.get('/api/page-lookup', async (req, res) => {
       e.all += n;
       if (b !== 'other') e[b] += n;
     }
-    const out = { pagePath, start: LOOKUP_START, end, days };
+    // started trials whose signup entry page IS this page (Salesforce lead
+    // field Entry_Attribution__c = "entry-page|token") — one tight, filtered
+    // query, small result, cached with the rest for the day
+    const trials = {};
+    const leadRows = await engineQuery(
+      'SELECT [CreatedDate], [Entry_Attribution__c], [Source_Category__c] ' +
+      'FROM [Salesforce-US-Prod].[Salesforce].[Lead] ' +
+      `WHERE [CreatedDate] >= '${TRIALS_START}' AND [Entry_Attribution__c] LIKE '${pagePath}%' ` +
+      'AND [Cloud_AccountId__c] IS NOT NULL LIMIT 10000');
+    for (const r of leadRows) {
+      // entry values may carry query strings (/page/?_bg=…|token) — strip them;
+      // drop deeper-path rows the prefix-LIKE also matched
+      const entry = String(r.Entry_Attribution__c || '').split('|')[0].trim().replace(/\?.*$/, '');
+      if (entry !== pagePath) continue;
+      const date = String(r.CreatedDate).slice(0, 10);
+      const t = (trials[date] ??= zero());
+      t.all += 1;
+      const b = sourceBucket(String(r.Source_Category__c || ''));
+      if (b !== 'other') t[b] += 1;
+    }
+    const out = { v: 2, pagePath, start: LOOKUP_START, end, days, trials, trialsStart: TRIALS_START };
     writeCache(cacheFile, out);
     res.json(out);
   } catch (e) { res.status(502).json({ error: e.message }); }

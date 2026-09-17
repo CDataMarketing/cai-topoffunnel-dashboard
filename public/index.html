@@ -429,9 +429,11 @@ function metricRows(pattern, days) {
   // only); sessions come from GA4 — independent systems, so per-bucket CVRs
   // are approximations.
   // (rendered AFTER the free-trial-clicks block — funnel order traffic → clicks → trials)
-  // single-page lookups have no per-page trials attribution — omit the rows
-  // rather than show a misleading 0
-  const trials = (!pattern.lookup && PAYLOAD.snapshot?.trials) ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
+  // single-page lookups carry their own per-page trials (queried live from
+  // Salesforce by the lookup endpoint) instead of the snapshot's per-pattern data
+  const trials = pattern.lookup
+    ? (pattern.trials || null)
+    : (PAYLOAD.snapshot?.trials ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null);
   const pushTrialsRows = () => {
     if (!trials) return;
     const tStart = PAYLOAD.snapshot.trialsStart || '';
@@ -1926,7 +1928,7 @@ async function runLookup() {
     const total = Object.values(data.days).reduce((a, d) => a + d.s.all, 0);
     st.textContent = total ? '' : 'no engaged sessions recorded on this page in the whole range';
     lookupResult = {
-      pattern: { id: '__lookup:' + data.pagePath, label: data.pagePath, lookup: true },
+      pattern: { id: '__lookup:' + data.pagePath, label: data.pagePath, lookup: true, trials: data.trials || null },
       days: data.days, start: data.start, end: data.end,
     };
     renderLookupTable();

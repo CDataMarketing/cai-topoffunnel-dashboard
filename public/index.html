@@ -148,7 +148,7 @@
   .expSum tbody th { text-align: left; background: var(--label-bg); }
   .expSum span.expLink, .funnelStage span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
   .expSum span.expLink:hover, .funnelStage span.expLink:hover { text-decoration: underline; }
-  #lookupPanel { margin-top: 16px; }
+  #lookupPanel { margin: 6px 0 10px; }
   #lookupPanel > summary { cursor: pointer; font-weight: 600; }
   #lookupForm { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 8px 0 4px; }
   #lookupResolved { margin: 2px 0 8px; }
@@ -237,6 +237,17 @@
     </select>
   </label>
 </div>
+<details id="lookupPanel" hidden>
+  <summary>🔎 Single-page lookup <small>(local — queries GA4 live, on request only)</small></summary>
+  <div id="lookupForm">
+    <label>Datasource: <input id="lookupDs" type="text" placeholder="e.g. Microsoft Dynamics 365 Business Central" size="34"></label>
+    <label>LLM: <input id="lookupLlm" type="text" placeholder="e.g. Claude (optional)" size="18"></label>
+    <button id="lookupBtn">Analyze</button>
+    <span id="lookupStatus" class="meta"></span>
+  </div>
+  <div id="lookupResolved" class="meta"></div>
+  <div class="tableWrap" id="lookupWrap"></div>
+</details>
 <details id="eventsDefs"><summary>Data definitions</summary><div id="eventsLine"></div></details>
 <div id="ctrChart"></div>
 <details open>
@@ -256,17 +267,6 @@
     <button id="rangeCancel">Cancel</button>
   </span>
 </div>
-<details id="lookupPanel" hidden>
-  <summary>Single-page lookup <small>(local — queries GA4 live, on request only)</small></summary>
-  <div id="lookupForm">
-    <label>Datasource: <input id="lookupDs" type="text" placeholder="e.g. Microsoft Dynamics 365 Business Central" size="34"></label>
-    <label>LLM: <input id="lookupLlm" type="text" placeholder="e.g. Claude (optional)" size="18"></label>
-    <button id="lookupBtn">Analyze</button>
-    <span id="lookupStatus" class="meta"></span>
-  </div>
-  <div id="lookupResolved" class="meta"></div>
-  <div class="tableWrap" id="lookupWrap"></div>
-</details>
 <div id="empty" hidden>No data snapshot yet — run <code>node fetch-data.js</code> first.</div>
 </div>
 

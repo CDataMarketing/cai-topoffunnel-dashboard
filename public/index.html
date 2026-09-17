@@ -148,6 +148,11 @@
   .expSum tbody th { text-align: left; background: var(--label-bg); }
   .expSum span.expLink, .funnelStage span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
   .expSum span.expLink:hover, .funnelStage span.expLink:hover { text-decoration: underline; }
+  #lookupPanel { margin-top: 16px; }
+  #lookupPanel > summary { cursor: pointer; font-weight: 600; }
+  #lookupForm { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 8px 0 4px; }
+  #lookupResolved { margin: 2px 0 8px; }
+  #lookupResolved .lookupAlt { cursor: pointer; color: var(--accent); text-decoration: underline dotted; }
   .expSum .rangeHead .meta { font-size: 10px; }
   #expWrap tr.flash td { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .35); transition: box-shadow .4s; }
   /* weekly summary: centered values (row labels and the corner stay left-aligned) */
@@ -251,6 +256,17 @@
     <button id="rangeCancel">Cancel</button>
   </span>
 </div>
+<details id="lookupPanel" hidden>
+  <summary>Single-page lookup <small>(local — queries GA4 live, on request only)</small></summary>
+  <div id="lookupForm">
+    <label>Datasource: <input id="lookupDs" type="text" placeholder="e.g. Microsoft Dynamics 365 Business Central" size="34"></label>
+    <label>LLM: <input id="lookupLlm" type="text" placeholder="e.g. Claude (optional)" size="18"></label>
+    <button id="lookupBtn">Analyze</button>
+    <span id="lookupStatus" class="meta"></span>
+  </div>
+  <div id="lookupResolved" class="meta"></div>
+  <div class="tableWrap" id="lookupWrap"></div>
+</details>
 <div id="empty" hidden>No data snapshot yet — run <code>node fetch-data.js</code> first.</div>
 </div>
 
@@ -375,6 +391,7 @@ document.getElementById('ctrView').addEventListener('click', (e) => {
     const k = ag.dataset.key;
     expandedAgentGroups.has(k) ? expandedAgentGroups.delete(k) : expandedAgentGroups.add(k);
     render();
+    renderLookupTable(); // the lookup table shares the toggle state
     return;
   }
   const btn = e.target.closest('.grpToggle');
@@ -382,6 +399,7 @@ document.getElementById('ctrView').addEventListener('click', (e) => {
   const g = btn.dataset.group;
   expandedGroups.has(g) ? expandedGroups.delete(g) : expandedGroups.add(g);
   render();
+  renderLookupTable();
 });
 
 function metricRows(pattern, days) {
@@ -411,7 +429,9 @@ function metricRows(pattern, days) {
   // only); sessions come from GA4 — independent systems, so per-bucket CVRs
   // are approximations.
   // (rendered AFTER the free-trial-clicks block — funnel order traffic → clicks → trials)
-  const trials = PAYLOAD.snapshot?.trials ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
+  // single-page lookups have no per-page trials attribution — omit the rows
+  // rather than show a misleading 0
+  const trials = (!pattern.lookup && PAYLOAD.snapshot?.trials) ? (PAYLOAD.snapshot.trials[pattern.id] || {}) : null;
   const pushTrialsRows = () => {
     if (!trials) return;
     const tStart = PAYLOAD.snapshot.trialsStart || '';
@@ -1776,8 +1796,11 @@ async function load() {
     stamp.textContent = `Data as of ${PAYLOAD.snapshot?.endDate ?? '—'}`;
     btn.after(stamp);
     fetch(API + '/api/refresh', { signal: AbortSignal.timeout(1500) })
-      .then((r) => { if (r.ok) { btn.style.display = ''; stamp.remove(); } })
+      .then((r) => { if (r.ok) { btn.style.display = ''; stamp.remove(); $('lookupPanel').hidden = false; } })
       .catch(() => {});
+  } else {
+    // served by the local dashboard server — the live single-page lookup works
+    $('lookupPanel').hidden = false;
   }
   const sel = $('patternSelect');
   sel.innerHTML = patternOptionsHtml();
@@ -1795,6 +1818,133 @@ async function load() {
   renderTimelines();
   renderAttribution(); // the default (first) tab
 }
+
+// ---- single-page lookup (local-only) ----------------------------------------
+// Free-text [datasource] / [llm] fields resolve to the real URL slugs from the
+// live page inventory ("Microsoft Dynamics 365 Business Central" →
+// d365businesscentral), then one on-request GA4 query renders the page's
+// numbers in the familiar weekly table. Only shown where the local dashboard
+// server (and through it the Connect Engine) responds.
+let slugInventory = null; // {ds, llm, singles} from /api/page-slugs (cached daily server-side)
+let lookupResult = null;  // last lookup: {pattern, days, start, end}
+
+const normTerm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+function lcsLen(a, b) { // longest common substring
+  let best = 0;
+  const m = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = 0;
+    for (let j = 1; j <= b.length; j++) {
+      const t = m[j];
+      m[j] = a[i - 1] === b[j - 1] ? prev + 1 : 0;
+      if (m[j] > best) best = m[j];
+      prev = t;
+    }
+  }
+  return best;
+}
+// rank candidate slugs against the user's wording. Primary signal: how much of
+// the typed wording the slug explains (word coverage — so "Microsoft Dynamics
+// 365 Business Central" prefers d365businesscentral over the shorter
+// dynamics365); raw overlap and containment act as tie-breakers.
+function matchSlugs(input, cands) {
+  const q = normTerm(input);
+  if (!q) return [];
+  const tokens = String(input).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  return cands
+    .map((slug) => {
+      const s = normTerm(slug);
+      let score;
+      if (s === q) score = 2;
+      else {
+        const covered = tokens.reduce((a, t) => a + (s.includes(t) ? t.length : 0), 0);
+        score = covered / q.length
+          + (lcsLen(s, q) / Math.max(s.length, q.length)) * 0.5
+          + ((s.includes(q) || q.includes(s)) ? 0.25 : 0);
+      }
+      return { slug, score };
+    })
+    .filter((x) => x.score >= 0.35)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+}
+
+function renderLookupTable() {
+  if (!lookupResult) return;
+  const { pattern, days, start, end } = lookupResult;
+  const dates = dateList(start, end);
+  const weeks = [];
+  for (const date of dates) {
+    const last = weeks[weeks.length - 1];
+    if (!last || parseDate(date).getUTCDay() === 1) weeks.push({ dates: [date] });
+    else last.dates.push(date);
+  }
+  const weeklyCols = weeks.map((w) => ({ label: weekLabel(w), dates: w.dates, weekstart: true }));
+  $('lookupWrap').innerHTML = buildTable(pattern, days, weeklyCols, null);
+  $('lookupWrap').scrollLeft = $('lookupWrap').scrollWidth;
+}
+
+const altSpan = (field, c) => `<span class="lookupAlt" data-field="${field}" data-slug="${c.slug}" title="Use this slug instead">${c.slug}</span>`;
+
+async function runLookup() {
+  const st = $('lookupStatus'), resEl = $('lookupResolved');
+  const dsIn = $('lookupDs').value.trim(), llmIn = $('lookupLlm').value.trim();
+  if (!dsIn && !llmIn) { st.textContent = 'enter a datasource (and optionally an LLM)'; return; }
+  $('lookupBtn').disabled = true;
+  try {
+    if (!slugInventory) {
+      st.textContent = 'loading the live page inventory…';
+      const r = await fetch(API + '/api/page-slugs');
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'inventory failed');
+      slugInventory = j;
+    }
+    const notes = [];
+    let ds = '', llm = '';
+    if (dsIn) {
+      // without an LLM the term may also mean a single page (e.g. "claude")
+      const cands = matchSlugs(dsIn, llmIn ? slugInventory.ds : [...new Set([...slugInventory.ds, ...slugInventory.singles])]);
+      if (!cands.length) throw new Error(`no /ai/connect/ page matches “${dsIn}”`);
+      ds = cands[0].slug;
+      notes.push(`“${dsIn}” → <code>${ds}</code>` +
+        (cands.length > 1 ? ` <small>(or: ${cands.slice(1).map((c) => altSpan('lookupDs', c)).join(', ')})</small>` : ''));
+    }
+    if (llmIn) {
+      const cands = matchSlugs(llmIn, dsIn ? slugInventory.llm : [...new Set([...slugInventory.llm, ...slugInventory.singles])]);
+      if (!cands.length) throw new Error(`no LLM slug matches “${llmIn}”`);
+      llm = cands[0].slug;
+      notes.push(`“${llmIn}” → <code>${llm}</code>` +
+        (cands.length > 1 ? ` <small>(or: ${cands.slice(1).map((c) => altSpan('lookupLlm', c)).join(', ')})</small>` : ''));
+    }
+    const pathDs = ds || llm, pathLlm = ds ? llm : '';
+    st.textContent = 'querying GA4 (first lookup per page and day — cached afterwards)…';
+    const r2 = await fetch(API + `/api/page-lookup?ds=${encodeURIComponent(pathDs)}${pathLlm ? '&llm=' + encodeURIComponent(pathLlm) : ''}`);
+    const data = await r2.json();
+    if (!r2.ok) throw new Error(data.error || 'lookup failed');
+    resEl.innerHTML = notes.join(' · ') +
+      ` · page <a class="patLink" href="https://www.cdata.com${data.pagePath}" target="_blank">${data.pagePath} ↗</a>`;
+    const total = Object.values(data.days).reduce((a, d) => a + d.s.all, 0);
+    st.textContent = total ? '' : 'no engaged sessions recorded on this page in the whole range';
+    lookupResult = {
+      pattern: { id: '__lookup:' + data.pagePath, label: data.pagePath, lookup: true },
+      days: data.days, start: data.start, end: data.end,
+    };
+    renderLookupTable();
+  } catch (e) {
+    st.textContent = '✗ ' + e.message;
+  } finally {
+    $('lookupBtn').disabled = false;
+  }
+}
+$('lookupBtn').addEventListener('click', runLookup);
+$('lookupDs').addEventListener('keydown', (e) => { if (e.key === 'Enter') runLookup(); });
+$('lookupLlm').addEventListener('keydown', (e) => { if (e.key === 'Enter') runLookup(); });
+$('lookupResolved').addEventListener('click', (e) => {
+  const alt = e.target.closest('.lookupAlt');
+  if (!alt) return;
+  $(alt.dataset.field).value = alt.dataset.slug;
+  runLookup();
+});
 
 $('refreshBtn').addEventListener('click', async () => {
   const btn = $('refreshBtn');

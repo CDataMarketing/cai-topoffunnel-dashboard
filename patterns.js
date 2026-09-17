@@ -162,6 +162,16 @@ const PATTERNS = [
     events: [],
   },
   {
+    id: 'ai-capabilities',
+    example: 'https://www.cdata.com/ai/capabilities/data-access/',
+    label: '/ai/capabilities/[capability]/',
+    scope: 'ai',
+    // capability slugs (data-access, governance, agent-tooling, security, …):
+    // any single segment, so newly launched capability pages show up automatically
+    regex: '^/ai/capabilities/[^/]+/(\\?.*)?$',
+    events: [],
+  },
+  {
     id: 'data-access-ds-to-consumer',
     example: 'https://www.cdata.com/data/access/salesforce-to-microsoft-power-bi-service/',
     label: '/data/access/[datasource]-to-[dataconsumer]/',

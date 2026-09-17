@@ -349,6 +349,12 @@ const ctrEventsOf = (days) => Object.keys(discoveredEvents(days)).filter((n) => 
 // events named after an AI agent (basis of the all_ai_agent_clicks aggregate)
 const AGENT_TOKENS = ['claude', 'chatgpt', 'gemini', 'copilot', 'agentforce', 'langchain',
   'openai', 'servicenow', 'crewai', 'gumloop', 'n8n', 'claude code'];
+// fixed display order for the trial-intent CTA breakdown (per Christof);
+// events not listed here follow after, by volume
+const AGENT_EVENT_ORDER = ['cc_ai_claude_app', 'cc_ai_chatgpt_app', 'cc_ai_claude_trial',
+  'cc_ai_chatgpt_trial', 'cc_ai_copilot_trial', 'cc_ai_gemini_trial', 'cc_ai_openai_trial',
+  'cc_ai_servicenow_trial', 'cc_ai_n8n_trial', 'cc_ai_agentforce_trial', 'cc_ai_crewai_trial',
+  'cc_ai_gumloop_trial', 'cc_ai_langchain_trial'];
 const agentEventsOf = (days) =>
   Object.keys(discoveredEvents(days)).filter((n) => AGENT_TOKENS.some((t) => n.includes(t)));
 
@@ -452,8 +458,15 @@ function metricRows(pattern, days) {
   };
   const totals = discoveredEvents(days);
   const names = Object.keys(totals);
-  const agentEvents = names.filter((n) => AGENT_TOKENS.some((t) => n.includes(t)))
-    .sort((a, b) => totals[b] - totals[a] || a.localeCompare(b));
+  const agentEvents = names.filter((n) => AGENT_TOKENS.some((t) => n.includes(t)));
+  // the ChatGPT trial CTA exists on /ai/ but has recorded no clicks yet — list it anyway
+  if (pattern.id === 'ai' && !agentEvents.includes('cc_ai_chatgpt_trial')) agentEvents.push('cc_ai_chatgpt_trial');
+  agentEvents.sort((a, b) => {
+    const ia = AGENT_EVENT_ORDER.indexOf(a), ib = AGENT_EVENT_ORDER.indexOf(b);
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    if (ia >= 0 || ib >= 0) return ia >= 0 ? -1 : 1;
+    return (totals[b] || 0) - (totals[a] || 0) || a.localeCompare(b);
+  });
   const hasFT = names.includes('cc_ai_free_trial');
   const trialSet = [...(hasFT ? ['cc_ai_free_trial'] : []), ...agentEvents];
   const rest = names.filter((n) => n !== 'all_button_clicks' && n !== 'cc_ai_free_trial' && !agentEvents.includes(n))

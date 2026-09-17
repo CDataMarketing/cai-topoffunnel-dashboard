@@ -163,7 +163,7 @@ const PATTERNS = [
   },
   {
     id: 'data-access-ds-to-consumer',
-    example: 'https://www.cdata.com/data/access/salesforce-to-powerbi/',
+    example: 'https://www.cdata.com/data/access/salesforce-to-microsoft-power-bi-service/',
     label: '/data/access/[datasource]-to-[dataconsumer]/',
     scope: 'data_access',
     regex: '^/data/access/[^/]+-to-[^/]+/(\\?.*)?$',

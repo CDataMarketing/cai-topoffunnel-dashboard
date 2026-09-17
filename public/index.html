@@ -146,8 +146,8 @@
   .expSum th, .expSum td { padding: 4px 12px; border: 1px solid var(--border); text-align: center; white-space: nowrap; }
   .expSum thead th { background: var(--head-bg); text-align: center; }
   .expSum tbody th { text-align: left; background: var(--label-bg); }
-  .expSum span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
-  .expSum span.expLink:hover { text-decoration: underline; }
+  .expSum span.expLink, .funnelStage span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
+  .expSum span.expLink:hover, .funnelStage span.expLink:hover { text-decoration: underline; }
   .expSum .rangeHead .meta { font-size: 10px; }
   #expWrap tr.flash td { box-shadow: inset 0 0 0 999px rgba(255, 229, 0, .35); transition: box-shadow .4s; }
   /* weekly summary: centered values (row labels and the corner stay left-aligned) */
@@ -1525,6 +1525,11 @@ function renderFunnel() {
     return { all, paid, org, tr };
   };
   const patLabel = (pid) => ((PAYLOAD.patterns.find((p) => p.id === pid) || { label: pid }).label).replace(' (main page)', '');
+  // experiment names mentioned in the intent texts link to their Experimentation Log row
+  const linkExp = (html) => html.replace(/the (How-it-works) experiment/g, (m, t) => {
+    const idx = (PAYLOAD.experiments || []).findIndex((x) => x.title === t);
+    return idx < 0 ? m : `the <span class="expLink" data-exp="${idx}" title="Open on the Experimentation Log tab">${t}</span> experiment`;
+  });
   const stageHtml = (cat, width) => {
     const s = stats(cat);
     const chips = cat.patterns.map((pid) => `<span class="funnelChip" data-pattern="${pid}" title="Open on the CAI Traffic, CTR & Trials tab">${esc(patLabel(pid))}</span>`).join('');
@@ -1537,8 +1542,8 @@ function renderFunnel() {
       `<div>${chips}</div>` +
       `<details><summary>Numbers, search intent & CTA intention</summary>` +
       `<div class="fnums">${fmtInt(s.all)} engaged sessions · ${fmtInt(s.tr)} started trials</div>` +
-      `<p><strong>Paid search intent (${fmtInt(s.paid)} paid engaged sessions):</strong> ${esc(cat.intent)}</p>` + perPattern +
-      (cat.organicIntent ? `<p><strong>Organic search intent (${fmtInt(s.org)} organic engaged sessions):</strong> ${esc(cat.organicIntent)}</p>` : '') +
+      `<p><strong>Paid search intent (${fmtInt(s.paid)} paid engaged sessions):</strong> ${linkExp(esc(cat.intent))}</p>` + perPattern +
+      (cat.organicIntent ? `<p><strong>Organic search intent (${fmtInt(s.org)} organic engaged sessions):</strong> ${linkExp(esc(cat.organicIntent))}</p>` : '') +
       `<p class="fcta"><strong>CTA intention:</strong> ${esc(cat.cta)}</p></details></div>`;
   };
   $('funnelIntro').innerHTML =
@@ -1558,6 +1563,8 @@ function renderFunnel() {
 }
 // pattern chips jump to the CAI tab with that pattern selected
 $('funnelView').addEventListener('click', (e) => {
+  const link = e.target.closest('span.expLink');
+  if (link) return jumpToExperiment(Number(link.dataset.exp));
   const chip = e.target.closest('.funnelChip');
   if (!chip) return;
   document.querySelector('#topTabs button[data-view="ctr"]').click(); // resets to defaults

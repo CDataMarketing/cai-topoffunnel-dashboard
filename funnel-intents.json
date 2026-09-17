@@ -54,7 +54,7 @@
       "patterns": ["ai-connect-ds-to-llm", "data-access-ds-to-consumer"],
       "paidSessions": { "search": 2101, "display": 0, "demandgen": 0 },
       "topTerms": ["salesforce claude", "claude and salesforce", "salesforce anthropic", "claude for microsoft 365", "how to connect claude to salesforce"],
-      "intent": "Pair questions, dominated by Salesforce+Claude in every phrasing — visitors researching whether and how two named products work together. A distinct sub-stream expects partnership NEWS (\"salesforce anthropic partnership\", \"claudeforce\") rather than a product page. Research-stage: high CTR interest but 0.7% paid CVR — they read and hand intent onward; the How-it-works experiment (since 17.09) targets exactly this.",
+      "intent": "Pair questions, dominated by Salesforce+Claude in every phrasing — visitors researching whether and how two named products work together. A distinct sub-stream expects partnership NEWS (\"salesforce anthropic partnership\", \"claudeforce\") rather than a product page. Research-stage: high CTR interest but 0.7% paid CVR — they read and hand intent onward; the How-it-works experiment targets exactly this.",
       "patternIntents": {
         "ai-connect-ds-to-llm": "AI pair questions (X + Claude/Copilot/ChatGPT), plus the partnership-news sub-stream on salesforce-to-claude.",
         "data-access-ds-to-consumer": "Small (~56 paid search sessions) but the same shape for BI: \"tableau salesforce\", \"connect excel to quickbooks\" — classic tool-pair feasibility questions."

@@ -105,7 +105,7 @@
     "evalEnd": "2026-09-07",
     "title": "Visuals for Top15",
     "evaluation": "Null result: the top15 pages ran a 9.1% paid trial-intent CTR over the 28-day window vs. 12.6% in the weekday-aligned pre-period — but the untreated rest of the X+Y pattern fell 9.1% → 8.4% too, after a pattern-wide step-down predating the visuals. The residual gap traces to one self-healing anomaly (workday: paid traffic −73%, zero clicks); without it the treated pages read 11.6% → 10.5% — level with the control. No page reproduces the visuals' salesforce-scale lift, none shows damage; ~21 paid sessions/day across fifteen pages (six nearly untrafficked) keep readings noisy, started trials (1 tracked) too thin to corroborate.",
-    "suggestions": "Flag two per-page side-findings to the SEM team: the workday window anomaly (traffic −73%, zero clicks, self-recovered) and kintone's 151 paid sessions without a single trial-intent click — plausibly a Japanese-audience/English-page mismatch. Keep or drop the visuals on design grounds; test the next demonstration format (e.g. an embedded interactive tour) on the highest-volume pairs, where a 14–28-day window can read an effect. The How-it-works experiment (top25 pages, live since 17.09) overlaps all later readings."
+    "suggestions": "Flag two per-page side-findings to the SEM team: the workday window anomaly (traffic −73%, zero clicks, self-recovered) and kintone's 151 paid sessions without a single trial-intent click — plausibly a Japanese-audience/English-page mismatch. Keep or drop the visuals on design grounds; test the next demonstration format (e.g. an embedded interactive tour) on the highest-volume pairs, where a 14–28-day window can read an effect. The How-it-works experiment (top25 pages, live from 24.09) will overlap all later readings."
   },
   {
     "url": "home",
@@ -176,7 +176,7 @@
     "experiment": "Replaced the feature columns with a “How it works” section that includes a corrected 3-step guide and a link to the corresponding /kb/tech/[datasource]-cloud-claude/ page. The MCP deep dive remains at the bottom of the page.",
     "hypothesis": "Visitors to the X+Y pages are looking for “how,” not “whether.” The more prominent “How it works” section with the link to the corresponding /kb/ setup guide should increase the willingness to start a trial. The “How it works” marker, combined with the link to the /kb/ page, also makes it easier for AI agents to find a reliable answer to “how” questions, which should boost trials starting from AI agents.",
     "ticket": "https://app.asana.com/1/1126938837961830/project/1200293127135525/task/1218319763040258?focus=true",
-    "implDate": "2026-09-17",
+    "implDate": "2026-09-24",
     "evalEnd": ""
   }
 ]

@@ -117,20 +117,31 @@ const eventsSqlClicks = (scope, s, e) =>
   `WHERE ${scope.where} AND [StartDate] = '${s}' AND [EndDate] = '${e}' ` +
   `AND [eventName] = 'all_button_clicks' LIMIT ${ROW_LIMIT}`;
 
-// Fetch one scope for one date range; split the range if the row cap is hit.
+// Fetch one scope for one date range; split the range if the row cap is hit
+// or the upstream query times out (very large weeks — e.g. kb_tech — can time
+// out server-side BEFORE the row cap ever triggers; halving the range is the
+// same cure).
 async function fetchScope(scopeId, s, e, out) {
   const scope = SCOPES[scopeId];
-  const sess = await queryRetry(sessionsSql(scope, s, e));
-  const evLike = await queryRetry(eventsSqlLike(scope, s, e));
-  const evClicks = await queryRetry(eventsSqlClicks(scope, s, e));
+  const split = async (reason) => {
+    const mid = iso(addDays(parseDate(s), Math.floor((parseDate(e) - parseDate(s)) / 86400000 / 2)));
+    console.log(`  ${scopeId} ${s}..${e}: ${reason}, splitting`);
+    await fetchScope(scopeId, s, mid, out);
+    await fetchScope(scopeId, iso(addDays(parseDate(mid), 1)), e, out);
+  };
+  let sess, evLike, evClicks;
+  try {
+    sess = await queryRetry(sessionsSql(scope, s, e));
+    evLike = await queryRetry(eventsSqlLike(scope, s, e));
+    evClicks = await queryRetry(eventsSqlClicks(scope, s, e));
+  } catch (err) {
+    if (s !== e && /timeout/i.test(err.message)) return split('query timeout');
+    throw err;
+  }
   const ev = { rowCount: evLike.rowCount + evClicks.rowCount, rows: [...evLike.rows, ...evClicks.rows] };
   if (sess.rowCount >= ROW_LIMIT || evLike.rowCount >= ROW_LIMIT || evClicks.rowCount >= ROW_LIMIT) {
     if (s === e) throw new Error(`row cap hit on a single day (${scopeId} ${s}) — raise ROW_LIMIT`);
-    const mid = iso(addDays(parseDate(s), Math.floor((parseDate(e) - parseDate(s)) / 86400000 / 2)));
-    console.log(`  ${scopeId} ${s}..${e}: row cap hit, splitting`);
-    await fetchScope(scopeId, s, mid, out);
-    await fetchScope(scopeId, iso(addDays(parseDate(mid), 1)), e, out);
-    return;
+    return split('row cap hit');
   }
   aggregate(scopeId, sess.rows, ev.rows, out);
   console.log(`  ${scopeId} ${s}..${e}: ${sess.rowCount} session rows, ${ev.rowCount} event rows`);

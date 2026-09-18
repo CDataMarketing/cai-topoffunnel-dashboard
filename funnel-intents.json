@@ -1,6 +1,6 @@
 {
   "window": "19.08.–15.09.2026",
-  "updated": "2026-09-16",
+  "updated": "2026-09-18",
   "statsFrom": "2026-08-19",
   "statsTo": "2026-09-15",
   "method": "The paid intent readings are based on the actual Google Ads search terms behind each page's paid clicks, as matched by Google Ads to our booked keywords — read together per page type, this reveals the intent each page actually receives. The organic intent readings come from Google Search Console's search queries for the same pages over the same 28 days (Search Console hides rare queries, so the visible list understates the long tail).",
@@ -75,6 +75,34 @@
       },
       "organicIntent": "Both channels see the same product-seeking intent (\"xero/quickbooks to power bi\", including a 1,690-impression Spanish query), but organic ranks 5–8 against Microsoft-owned SERPs and wins ~1 click in 28 days — the bridge's audience import is effectively paid-only today.",
       "cta": "Offer the fork: get-what-you-came-for (driver/BI) and the Connect AI alternative, equal standing."
+    },
+    {
+      "id": "landers",
+      "name": "Campaign landers",
+      "role": "Paid-only landing pages, one campaign promise per page — entity/pair intent, pre-segmented per campaign.",
+      "patterns": ["ai-lp-campaign"],
+      "paidSessions": { "search": 335, "display": 7, "demandgen": 13 },
+      "topTerms": ["linkedin mcp for claude", "how to connect linkedin to claude", "power bi and quickbooks", "cdata power bi connector for netsuite", "claude shopify", "plugin install stripe claude"],
+      "intent": "Each lander receives exactly the question its slug names: \"connect LinkedIn to Claude\" in every phrasing dominates (the top lander), followed by Claude+tool connector questions (Shopify, Stripe, HubSpot) and X-to-Power-BI feasibility pairs (NetSuite, QuickBooks) — the entity and pair intents, pre-segmented per campaign, with minimal broad-match leakage. A distinct sub-stream follows Claude plugin-directory install instructions (\"plugin install stripe claude plugins official\"). Roughly a third of the paid traffic carries no Google query at all — LinkedIn and other campaign channels, feeding mainly the persona landers (finance, sales ops, marketing).",
+      "patternIntents": {
+        "ai-lp-campaign": "Pure campaign echo — the search terms repeat each lander's booked pair keyword almost verbatim; what the campaign buys is what the page receives."
+      },
+      "organicIntent": "None by design: 3 organic engaged sessions in the window and 0 Search Console clicks on 25 impressions (a few stray \"copilot trial\" queries). The landers are organically invisible — correct for campaign pages; their demand is entirely bought.",
+      "cta": "Deliver the promise, nothing else: the named connector's trial as the single action; no navigation that re-opens the decision."
+    },
+    {
+      "id": "proof",
+      "name": "Platform proof",
+      "role": "Capability depth pages (security, governance, connectivity) — proof material for evaluators and, increasingly, for AI assistants.",
+      "patterns": ["ai-capabilities"],
+      "paidSessions": { "search": 29, "display": 0, "demandgen": 0 },
+      "topTerms": ["litellm", "ai gateway", "truefoundry", "portkey", "vercel ai gateway", "cdata connect ai"],
+      "intent": "Barely a paid pattern: ~29 Google-tagged search sessions in the window, spillover from the AI-gateway category campaign — engineers comparing gateway and proxy tooling (LiteLLM, Portkey, TrueFoundry, Cloudflare/Vercel AI Gateway), landing mostly on universal-connectivity. That intent is category-adjacent rather than capability-specific; the pattern's real audience arrives by direct entry and internal navigation (281 direct engaged sessions) — people already inside the evaluation.",
+      "patternIntents": {
+        "ai-capabilities": "Gateway-category shoppers reach universal-connectivity; the other capability pages receive almost no paid search at all."
+      },
+      "organicIntent": "18 Search Console clicks on 1,515 impressions, every clicking query anonymized — the visible list is impressions-only and splits into competitor research (\"cdata alternatives\" at position ~80: seen, not chosen), capability vocabulary at readable positions (\"semantic context\", \"context plane\", p10–12), and — most distinctive — long AI-assistant-style evaluation questions ranking at positions 5–12 (\"which security, encryption, and audit trail capabilities does cdata support…\"): answer engines already cite these pages as evidence.",
+      "cta": "Reassure and hand back: capability-specific proof with one clear path onward (trial or architecture overview) — and keep every claim quotable, because AI assistants read these pages more often than people click them."
     },
     {
       "id": "knowledge",

@@ -468,13 +468,14 @@ function metricRows(pattern, days) {
   // 2) each event separately: amount row + small italic CTR sub-row per bucket.
   // Compact by default: only the "All" rows show; the per-channel breakdown
   // expands via the ▸ toggle on the event's first row.
-  const eventBlock = (label, evNames, cls, extraToggle = '') => {
+  const eventBlock = (label, evNames, cls, extraToggle = '', cellTip = null) => {
     const expanded = expandedGroups.has(label);
     const buckets = expanded ? BUCKETS : ['all'];
     const toggle = `<button class="grpToggle" data-group="${label}" title="${expanded ? 'Hide' : 'Show'} paid/organic/direct breakdown">${expanded ? '▾' : '▸'}</button>`;
     buckets.forEach((b, i) => {
       curTip = TRAFFIC_TIP[b];
       push(`${b === 'all' ? toggle : ''}<small>${label}</small> — ${BUCKET_LABEL[b]}${b === 'all' ? extraToggle : ''}`, cls, (dates) => fmtInt(eventSum(days, dates, evNames, b)), false);
+      rows[rows.length - 1].cellTip = cellTip;
       push(`<small><em>↳ CTR — ${BUCKET_LABEL[b]}</em></small>`, `evctr ${cls.split(' ')[0]}`, (dates) => ctrStr(dates, evNames, b), i === buckets.length - 1);
     });
   };
@@ -509,7 +510,13 @@ function metricRows(pattern, days) {
     if (combined && agOpen) {
       if (hasFT) eventBlock('↳ cc_ai_free_trial (alone)', ['cc_ai_free_trial'], 'extra subEvt');
       eventBlock('↳ all_ai_agent_clicks', agentEvents, 'extra subEvt');
-      for (const ev of agentEvents) eventBlock('↳ ' + ev, [ev], 'extra subEvt');
+      for (const ev of agentEvents) {
+        // the /ai/ ChatGPT trial CTA fired nothing before its wiring was fixed
+        const tip = (pattern.id === 'ai' && ev === 'cc_ai_chatgpt_trial')
+          ? (dates) => (dates.includes('2026-09-17') ? 'tracking fixed and started on 09/17/2026' : null)
+          : null;
+        eventBlock('↳ ' + ev, [ev], 'extra subEvt', '', tip);
+      }
     }
   }
 
@@ -551,8 +558,11 @@ function buildTable(pattern, days, columns, weekHeader, fixedGrid) {
     html += `<tr class="${r.cls}${r.blockend ? ' blockend' : ''}"><th>${r.label}</th>`;
     for (const c of columns) {
       const v = r.fn(c.dates);
+      // a row may add a date-dependent note to individual cells (e.g. a
+      // tracking-start remark on the affected week/day)
+      const tip = (r.cellTip && r.cellTip(c.dates)) || r.tip;
       html += `<td class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}` +
-        `${v === '0' || v === '-' ? ' zero' : ''}" title="${r.tip}">${v}</td>`;
+        `${v === '0' || v === '-' ? ' zero' : ''}" title="${tip}">${v}</td>`;
     }
     html += '</tr>';
   }

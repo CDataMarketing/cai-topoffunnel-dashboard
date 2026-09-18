@@ -511,8 +511,9 @@ function metricRows(pattern, days) {
       if (hasFT) eventBlock('↳ cc_ai_free_trial (alone)', ['cc_ai_free_trial'], 'extra subEvt');
       eventBlock('↳ all_ai_agent_clicks', agentEvents, 'extra subEvt');
       for (const ev of agentEvents) {
-        // the /ai/ ChatGPT trial CTA fired nothing before its wiring was fixed
-        const tip = (pattern.id === 'ai' && ev === 'cc_ai_chatgpt_trial')
+        // the ChatGPT trial CTA (on /ai/ and the integrations pages) fired
+        // nothing before its wiring was fixed
+        const tip = ((pattern.id === 'ai' || pattern.id === 'ai-integrations-llm') && ev === 'cc_ai_chatgpt_trial')
           ? (dates) => (dates.includes('2026-09-17') ? 'tracking fixed and started on 09/17/2026' : null)
           : null;
         eventBlock('↳ ' + ev, [ev], 'extra subEvt', '', tip);

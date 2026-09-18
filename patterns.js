@@ -185,13 +185,15 @@ const PATTERNS = [
     label: '/kb/ Connect AI pages (updated weekly)',
     scopes: ['kb_articles', 'kb_tech'],
     // All Connect AI-related KB pages by slug convention: the hand-written
-    // articles (connect-ai-*, know-llm-*, connect-cloud-*) plus the generated
-    // how-to matrix ([source]-cloud-*). MCP KB content (tech -mcp- pages,
-    // articles mcp-*) is deliberately EXCLUDED — it covers the downloadable
-    // on-premise MCP drivers, not Connect AI (per Christof, 2026-09-08). Both
-    // scopes are weekly-only, so this pattern's numbers refresh Mondays.
+    // articles (connect-ai-*, know-llm-*, connect-cloud-*, cloud-* — the
+    // cloud-* family verified Connect AI/Cloud content 2026-09-18, e.g.
+    // cloud-supabase) plus the generated how-to matrix ([source]-cloud-*).
+    // MCP KB content (tech -mcp- pages, articles mcp-*) is deliberately
+    // EXCLUDED — it covers the downloadable on-premise MCP drivers, not
+    // Connect AI (per Christof, 2026-09-08). Both scopes are weekly-only, so
+    // this pattern's numbers refresh Mondays.
     // No cc_ai_* events fire on /kb/ pages → all_button_clicks fallback CTR.
-    regex: '^/kb/(articles/(connect-ai-|know-llm-|connect-cloud-)[^/]+|tech/[^/]+-cloud-[^/]+)$',
+    regex: '^/kb/(articles/(connect-ai-|know-llm-|connect-cloud-|cloud-)[^/]+|tech/[^/]+-cloud-[^/]+)$',
     events: [],
   },
   {

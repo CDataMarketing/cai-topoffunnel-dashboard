@@ -126,25 +126,26 @@ async function fetchTrials() {
     const date = String(row.CreatedDate).slice(0, 10);
     const bucket = sourceBucket(String(row.Source_Category__c || ''));
     const cat = entryCategory(rawEntry, bucket);
+    const p = entryPath(rawEntry);
+    const pats = []; // every pattern the entry page matches (incl. aggregates)
+    if (p && !p.includes('/jp/')) { // same Japanese-pages exclusion as GA4
+      for (const pat of compiled) {
+        if (!pat.re.test(p) || (pat.exRe && pat.exRe.test(p))) continue;
+        const cell = ((trials[pat.id] ??= {})[date] ??= { all: 0, paid: 0, organic: 0, direct: 0 });
+        cell.all++;
+        if (bucket !== 'other') cell[bucket]++;
+        pats.push(pat.id);
+      }
+      if (pats.length) attributed++;
+    }
     if (cat) {
       (attribution[date] ??= {})[cat] = ((attribution[date] ??= {})[cat] || 0) + 1;
       leads.push({
-        date, cat,
+        date, cat, pats,
         cloudAcct: row.Cloud_AccountId__c ? String(row.Cloud_AccountId__c) : null,
         convAcct: row.ConvertedAccountId ? String(row.ConvertedAccountId) : null,
       });
     }
-    const p = entryPath(rawEntry);
-    if (!p || p.includes('/jp/')) continue; // same Japanese-pages exclusion as GA4
-    let hit = false;
-    for (const pat of compiled) {
-      if (!pat.re.test(p) || (pat.exRe && pat.exRe.test(p))) continue;
-      const cell = ((trials[pat.id] ??= {})[date] ??= { all: 0, paid: 0, organic: 0, direct: 0 });
-      cell.all++;
-      if (bucket !== 'other') cell[bucket]++;
-      hit = true;
-    }
-    if (hit) attributed++;
   }
   console.log(`Trials: ${res.rowCount} attribution leads fetched, ${attributed} matched a URL pattern`);
   return { trials, attribution, leads };
@@ -182,6 +183,7 @@ async function fetchTrialOpps(leads) {
     leadsByAcct.get(l.convAcct).push(l);
   }
   const trialOpps = {}; // { leadDate: { category: count } }
+  const trialOppsByPattern = {}; // { leadDate: { patternId: count } } — same opp, keyed by the lead's entry URL pattern(s)
   let converted = 0;
   for (const o of opps.rows) {
     const cands = leadsByAcct.get(String(o.AccountId || ''));
@@ -190,6 +192,8 @@ async function fetchTrialOpps(leads) {
     const lead = cands.filter((l) => l.date <= oDate).sort((a, b) => b.date.localeCompare(a.date))[0];
     if (!lead) continue;
     (trialOpps[lead.date] ??= {})[lead.cat] = ((trialOpps[lead.date] ??= {})[lead.cat] || 0) + 1;
+    for (const pid of lead.pats || [])
+      (trialOppsByPattern[lead.date] ??= {})[pid] = ((trialOppsByPattern[lead.date] ??= {})[pid] || 0) + 1;
     converted++;
   }
   const expiryByAcct = new Map();
@@ -204,17 +208,18 @@ async function fetchTrialOpps(leads) {
     if (exp && (!trialMaxExpiry[l.date] || trialMaxExpiry[l.date] < exp)) trialMaxExpiry[l.date] = exp;
   }
   console.log(`Trial opps: ${opps.rowCount} CAI new-business opps fetched, ${converted} attributed to a trial signup`);
-  return { trialOpps, trialMaxExpiry };
+  return { trialOpps, trialOppsByPattern, trialMaxExpiry };
 }
 
 // merge into the snapshot; keeps existing trials if Salesforce is unreachable
 async function updateSnapshot() {
   const snapshot = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8'));
   const { trials, attribution, leads } = await fetchTrials();
-  const { trialOpps, trialMaxExpiry } = await fetchTrialOpps(leads);
+  const { trialOpps, trialOppsByPattern, trialMaxExpiry } = await fetchTrialOpps(leads);
   snapshot.trials = trials;
   snapshot.trialAttribution = attribution; // Trial Attribution tab: { date: { category: n } }
   snapshot.trialOpps = trialOpps; // { leadDate: { category: opps } }
+  snapshot.trialOppsByPattern = trialOppsByPattern; // { leadDate: { patternId: opps } }
   snapshot.trialMaxExpiry = trialMaxExpiry; // { leadDate: latest trial expiry }
   snapshot.trialsStart = TRIALS_START; // UI: days before this show "–", not 0
   snapshot.trialsUpdatedAt = new Date().toISOString();

@@ -1798,6 +1798,7 @@ function renderAttribution() {
   const pats = PAYLOAD.patterns.filter((p) => !AGGREGATE_IDS.has(p.id) && !PAGE_SET_IDS.has(p.id) && !PAT_EXCL.has(p.id));
   const pTrials = (pid, dates) => dates.reduce((a, d) => a + (PAYLOAD.snapshot.trials?.[pid]?.[d]?.all ?? 0), 0);
   const pSess = (pid, dates) => dates.reduce((a, d) => a + (PAYLOAD.snapshot.data[pid]?.[d]?.s.all ?? 0), 0);
+  const pOpps = (pid, dates) => dates.reduce((a, d) => a + (PAYLOAD.snapshot.trialOppsByPattern?.[d]?.[pid] ?? 0), 0);
   const wk2 = weeks.map((w) => {
     const per = {};
     let tot = 0;
@@ -1809,16 +1810,18 @@ function renderAttribution() {
     .map((p) => `<tr class="evt"><th>${optionLabel(p)}</th>` + wk2.map((w) => {
       const v = w.per[p.id];
       return `<td class="attrShare">${shareStr(v, w.tot)}</td><td><small style="color:var(--muted)">${fmtInt(v)}</small></td>` +
-        `<td><small>${cvrStr1(v, pSess(p.id, w.dates))}</small></td>`;
+        `<td><small>${cvrStr1(v, pSess(p.id, w.dates))}</small></td><td><small>${fmtInt(pOpps(p.id, w.dates))}</small></td>`;
     }).join('') + '</tr>').join('');
   const totRow2 = `<tr class="trials"><th>All listed patterns</th>` + wk2.map((w) =>
     `<td class="attrShare">100%</td><td><small style="color:var(--muted)">${fmtInt(w.tot)}</small></td>` +
-    `<td><small>${cvrStr1(w.tot, pats.reduce((a, p) => a + pSess(p.id, w.dates), 0))}</small></td>`).join('') + '</tr>';
-  const cols2 = weeks.map((w) => `<th colspan="3">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br><small style="font-weight:400">${fmtDM(w.from)}–${fmtDM(w.to)}</small></th>`).join('');
-  const subCols2 = weeks.map(() => '<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th>').join('');
+    `<td><small>${cvrStr1(w.tot, pats.reduce((a, p) => a + pSess(p.id, w.dates), 0))}</small></td>` +
+    `<td><small>${fmtInt(pats.reduce((a, p) => a + pOpps(p.id, w.dates), 0))}</small></td>`).join('') + '</tr>';
+  const cols2 = weeks.map((w) => `<th colspan="4">CW ${isoWeekNo(w.from)}${w.partial ? ' (partial)' : ''}<br><small style="font-weight:400">${fmtDM(w.from)}–${fmtDM(w.to)}</small></th>`).join('');
+  const subCols2 = weeks.map((w) => '<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th>' +
+    `<th class="attrSub" title="Connect AI new-business opportunities opened on the signup's account on/after the trial start, attributed to the signup's entry URL pattern${w.oppsIncomplete ? ' — some of this week’s trials are still running, more opportunities can follow' : ''}">Opps${w.oppsIncomplete ? '<br><span style="font-size:8px">(incomplete)</span>' : ''}</th>`).join('');
   $('attrWrap').innerHTML += '<h3 style="margin:20px 0 6px">Started trials by entry URL pattern</h3>' +
     `<table><thead><tr><th rowspan="2">URL pattern</th>${cols2}</tr><tr>${subCols2}</tr></thead><tbody>${rows2}${totRow2}</tbody></table>` +
-    '<p class="tlIntro" style="margin-top:6px">The same weeks, split by the dashboard URL pattern the signup\'s entry page matches (without the selected page sets, the /drivers/ MCP and Cloud pages and the aggregates; the listed patterns are URL-disjoint, so each trial counts exactly once). Share = share of the listed patterns\' trials that week; CVR = the pattern\'s trials ÷ its engaged sessions (all traffic, GA4 — the last two days are still settling, so the newest week reads high). Trials whose entry page matches none of the listed patterns (app signups, unmatched pages) appear only in the entry-category table above. Opportunities are attributed per entry channel, not per URL pattern — hence no Opps column.</p>';
+    '<p class="tlIntro" style="margin-top:6px">The same weeks, split by the dashboard URL pattern the signup\'s entry page matches (without the selected page sets, the /drivers/ MCP and Cloud pages and the aggregates; the listed patterns are URL-disjoint, so each trial counts exactly once). Share = share of the listed patterns\' trials that week; CVR = the pattern\'s trials ÷ its engaged sessions (all traffic, GA4 — the last two days are still settling, so the newest week reads high). Trials whose entry page matches none of the listed patterns (app signups, unmatched pages) appear only in the entry-category table above. Opps = the same opportunity attribution as above (opened on the signup\'s converted account on/after the trial start), assigned to the signup\'s entry URL pattern via the lead behind the opportunity.</p>';
 }
 
 // ISO week number of a YYYY-MM-DD date

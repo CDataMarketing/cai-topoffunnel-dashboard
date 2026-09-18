@@ -148,6 +148,7 @@
   .expSum tbody th { text-align: left; background: var(--label-bg); }
   .expSum span.expLink, .funnelStage span.expLink { cursor: pointer; color: var(--accent); font-weight: 600; }
   .expSum span.expLink:hover, .funnelStage span.expLink:hover { text-decoration: underline; }
+  td .cellNote { cursor: help; color: var(--accent); font-size: 8px; margin-left: 2px; font-weight: 700; }
   #lookupPanel { margin: 6px 0 10px; }
   #lookupPanel > summary { cursor: pointer; font-weight: 600; }
   #lookupForm { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 8px 0 4px; }
@@ -560,10 +561,12 @@ function buildTable(pattern, days, columns, weekHeader, fixedGrid) {
     for (const c of columns) {
       const v = r.fn(c.dates);
       // a row may add a date-dependent note to individual cells (e.g. a
-      // tracking-start remark on the affected week/day)
-      const tip = (r.cellTip && r.cellTip(c.dates)) || r.tip;
+      // tracking-start remark on the affected week/day) — shown as a visible
+      // ⓘ marker that carries the note on hover
+      const note = r.cellTip && r.cellTip(c.dates);
       html += `<td class="${c.weekstart ? 'weekstart' : ''}${c.wknd ? ' wknd' : ''}` +
-        `${v === '0' || v === '-' ? ' zero' : ''}" title="${tip}">${v}</td>`;
+        `${v === '0' || v === '-' ? ' zero' : ''}" title="${note || r.tip}">${v}` +
+        `${note ? `<sup class="cellNote" title="${note}">ⓘ</sup>` : ''}</td>`;
     }
     html += '</tr>';
   }

@@ -1829,7 +1829,7 @@ function renderAttribution() {
   const subCols2 = weeks.map((w) => '<th class="attrSub">Share</th><th class="attrSub">Trials</th><th class="attrSub">CVR</th>' +
     `<th class="attrSub" title="Connect AI new-business opportunities opened on the signup's account on/after the trial start, attributed to the signup's entry URL pattern${w.oppsIncomplete ? ' — some of this week’s trials are still running, more opportunities can follow' : ''}">Opps${w.oppsIncomplete ? '<br><span style="font-size:8px">(incomplete)</span>' : ''}</th>`).join('');
   $('attrWrap').innerHTML += '<h3 style="margin:20px 0 6px">Started trials by entry URL pattern</h3>' +
-    `<table><thead><tr><th rowspan="2">URL pattern</th>${cols2}</tr><tr>${subCols2}</tr></thead><tbody>${rows2}${totRow2}</tbody></table>` +
+    `<table><thead><tr><th rowspan="2">URL attribution</th>${cols2}</tr><tr>${subCols2}</tr></thead><tbody>${rows2}${totRow2}</tbody></table>` +
     '<p class="tlIntro" style="margin-top:6px">The same weeks, split by the dashboard URL pattern the signup\'s entry page matches (without the selected page sets, the /drivers/ MCP and Cloud pages and the aggregates; the listed patterns are URL-disjoint, so each trial counts exactly once). Share = share of the listed patterns\' trials that week; CVR = the pattern\'s trials ÷ its engaged sessions (all traffic, GA4 — the last two days are still settling, so the newest week reads high). Trials whose entry page matches none of the listed patterns (app signups, unmatched pages) appear only in the entry-category table above. Opps = the same opportunity attribution as above (opened on the signup\'s converted account on/after the trial start), assigned to the signup\'s entry URL pattern via the lead behind the opportunity.</p>';
 }
 

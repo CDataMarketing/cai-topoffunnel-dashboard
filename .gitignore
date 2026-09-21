@@ -1,0 +1,8 @@
+# fetched data and generated artifacts — never committed (company rule:
+# query results stay out of git; app code in, data out)
+data/
+node_modules/
+
+# Connect Engine runtime secrets & logs
+engine/.oauth/
+engine/*.log

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.cdata.hackathon</groupId>
+  <artifactId>connect-engine</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <!--
+      The CData JDBC Driver for Connect is a licensed vendor artifact, fetched by
+      run.sh from CData's canonical driver repo (maven.cdata.com) — not committed to
+      git, and not resolvable as a normal Maven Central dependency. At build/run time
+      it must be present at engine/lib/cdata.jdbc.connect.jar. See engine/README.md.
+    -->
+    <dependency>
+      <groupId>cdata</groupId>
+      <artifactId>connect-jdbc</artifactId>
+      <version>26.0.9676</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/lib/cdata.jdbc.connect.jar</systemPath>
+    </dependency>
+
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20240303</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>connect-engine</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <!--
+                Only shade our own code + org.json. The CData driver stays external
+                (system scope isn't bundled by the shade plugin) and is added to the
+                runtime classpath by engine/run.sh instead.
+              -->
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.cdata.hackathon.engine.Main</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

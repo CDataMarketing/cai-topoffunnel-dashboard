@@ -106,7 +106,18 @@ function entryCategory(raw, bucket) {
   return v || 'unknown'; // app-mcp, app-gpt, web-local, local-sandbox, …
 }
 
-async function fetchTrials() {
+// Spreadsheets-edition and OEM signups are EXCLUDED from every trial number
+// (per Christof, 2026-09-21): their CAI account carries PlanType__c
+// 'Spreadsheets' or IsOEM__c = true. Two simple-equality queries so the
+// filters push down; matched by the account's cloud UUID.
+async function fetchExcludedAccounts() {
+  const table = '[Salesforce-US-Prod].[Salesforce].[CAI_Account__c]';
+  const oem = await query(`SELECT [CAI_AccountID__c] FROM ${table} WHERE [IsOEM__c] = true LIMIT ${ROW_LIMIT}`);
+  const sheets = await query(`SELECT [CAI_AccountID__c] FROM ${table} WHERE [PlanType__c] = 'Spreadsheets' LIMIT ${ROW_LIMIT}`);
+  return new Set([...oem.rows, ...sheets.rows].map((r) => String(r.CAI_AccountID__c)));
+}
+
+async function fetchTrials(excludedAccounts) {
   const sql =
     'SELECT [CreatedDate], [Entry_Attribution__c], [Source_Category__c], ' +
     '[Cloud_AccountId__c], [ConvertedAccountId] ' +
@@ -120,8 +131,9 @@ async function fetchTrials() {
   const trials = {}; // { patternId: { date: { all, paid, organic, direct } } }
   const attribution = {}; // { date: { category: count } } — Trial Attribution tab
   const leads = []; // for the opportunity join below
-  let attributed = 0;
+  let attributed = 0, excluded = 0;
   for (const row of res.rows) {
+    if (excludedAccounts.has(String(row.Cloud_AccountId__c))) { excluded++; continue; }
     const rawEntry = String(row.Entry_Attribution__c || '');
     const date = String(row.CreatedDate).slice(0, 10);
     const bucket = sourceBucket(String(row.Source_Category__c || ''));
@@ -147,7 +159,7 @@ async function fetchTrials() {
       });
     }
   }
-  console.log(`Trials: ${res.rowCount} attribution leads fetched, ${attributed} matched a URL pattern`);
+  console.log(`Trials: ${res.rowCount} attribution leads fetched, ${excluded} excluded (Spreadsheets/OEM), ${attributed} matched a URL pattern`);
   return { trials, attribution, leads };
 }
 
@@ -214,7 +226,8 @@ async function fetchTrialOpps(leads) {
 // merge into the snapshot; keeps existing trials if Salesforce is unreachable
 async function updateSnapshot() {
   const snapshot = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8'));
-  const { trials, attribution, leads } = await fetchTrials();
+  const excludedAccounts = await fetchExcludedAccounts();
+  const { trials, attribution, leads } = await fetchTrials(excludedAccounts);
   const { trialOpps, trialOppsByPattern, trialMaxExpiry } = await fetchTrialOpps(leads);
   snapshot.trials = trials;
   snapshot.trialAttribution = attribution; // Trial Attribution tab: { date: { category: n } }

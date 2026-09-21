@@ -1701,7 +1701,7 @@ function renderAttribution() {
   const wkLabel = (w) => `CW ${isoWeekNo(w.from)} · ${fmtDM(w.from)}–${fmtDM(w.to)}${w.partial ? ' (partial)' : ''}`;
 
   $('attrIntro').innerHTML = '<p class="tlIntro">All started Connect AI trials (Salesforce Entry Attribution, tracked since ' +
-    start + '), weekly by entry category: website entries — pages and the page-less <code>web</code> marker — are split into ' +
+    start + '; Spreadsheets-edition and OEM signups excluded), weekly by entry category: website entries — pages and the page-less <code>web</code> marker — are split into ' +
     'the traffic types via the Salesforce Source Category; <code>app-mcp</code>/<code>app-gpt</code> signups start inside the ' +
     'AI apps and carry no web session. CVR = traffic-related trials ÷ page-level engaged sessions on all Connect AI pages ' +
     '(all traffic) — sessions of the last two days are still settling in GA4, so the newest week reads high.</p>';

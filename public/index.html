@@ -1787,7 +1787,16 @@ function renderAttribution() {
   // trials only (app entries carry no web session).
   rows += `<tr class="trials"><th>Traffic-related trials</th>${weeks.map((w) =>
       `<td class="attrShare">100%</td><td><small style="color:var(--muted)">${fmtInt(w.total)}</small></td><td><small>${w.cvr === null ? '–' : w.cvr.toFixed(1) + '%'}</small></td><td><small>${fmtInt(w.oppsTotal)}</small></td>`).join('')}</tr>`;
-  $('attrWrap').innerHTML = `<table><thead><tr><th rowspan="2">Entry attribution</th>${cols}</tr><tr>${subCols}</tr></thead><tbody>${rows}</tbody></table>` +
+  // all started trials — every CAI signup incl. those WITHOUT entry attribution
+  // (Spreadsheets edition and OEM excluded at fetch time); no share/CVR/opps,
+  // since the unattributed part has no entry channel or web session to relate to
+  const allTot = PAYLOAD.snapshot.trialsAllTotal || null;
+  if (allTot) {
+    const sumAll = (dates) => dates.reduce((a, d) => a + (allTot[d] || 0), 0);
+    rows += `<tr class="trials"><th title="Every started Connect AI trial (self-service signup with own CAI account, Spreadsheets edition and OEM excluded) — including signups without entry attribution, which the rows above cannot cover">All started trials <small>(incl. unattributed)</small></th>${weeks.map((w) =>
+      `<td class="attrShare">–</td><td><small style="color:var(--muted)">${fmtInt(sumAll(w.dates))}</small></td><td><small>–</small></td><td><small>–</small></td>`).join('')}</tr>`;
+  }
+  $('attrWrap').innerHTML = `<table><thead><tr><th rowspan="2">Traffic attribution</th>${cols}</tr><tr>${subCols}</tr></thead><tbody>${rows}</tbody></table>` +
     '<p class="tlIntro" style="margin-top:6px">Traffic-related trials = all self-service trials with an entry attribution (as opposed to sales-created trials). Per-source CVR = the source\'s trials ÷ the matching GA4 session bucket on all Connect AI pages (paid/organic/direct only); the total row\'s CVR uses the website-entry trials ÷ all engaged sessions. Trial source from Salesforce, sessions from GA4 — independent systems, so per-source CVRs are approximations. No CVR for app entries (no web session) or "other web" (largely unclassified Salesforce sources with no matching session bucket). Opps = Connect AI new-business opportunities opened on the signup\'s converted account on/after the trial start — sales opens opportunities manually, so they lag the trial; a week is "(incomplete)" while any of its trials has not expired yet.</p>';
 
   // ---- second table: the same weekly view per URL pattern (entry page →

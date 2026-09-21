@@ -118,24 +118,28 @@ async function fetchExcludedAccounts() {
 }
 
 async function fetchTrials(excludedAccounts) {
+  // no Entry_Attribution filter: signups WITHOUT attribution count toward the
+  // "All started trials" total only
   const sql =
     'SELECT [CreatedDate], [Entry_Attribution__c], [Source_Category__c], ' +
     '[Cloud_AccountId__c], [ConvertedAccountId] ' +
     'FROM [Salesforce-US-Prod].[Salesforce].[Lead] ' +
     `WHERE [CreatedDate] >= '${TRIALS_START}' ` +
-    'AND [Entry_Attribution__c] IS NOT NULL ' +
     `AND [Cloud_AccountId__c] IS NOT NULL LIMIT ${ROW_LIMIT}`;
   const res = await query(sql);
   if (res.rowCount >= ROW_LIMIT) throw new Error('trials row cap hit — raise ROW_LIMIT');
 
   const trials = {}; // { patternId: { date: { all, paid, organic, direct } } }
   const attribution = {}; // { date: { category: count } } — Trial Attribution tab
+  const allTotal = {}; // { date: count } — EVERY non-excluded CAI signup, with or without entry attribution
   const leads = []; // for the opportunity join below
   let attributed = 0, excluded = 0;
   for (const row of res.rows) {
     if (excludedAccounts.has(String(row.Cloud_AccountId__c))) { excluded++; continue; }
-    const rawEntry = String(row.Entry_Attribution__c || '');
     const date = String(row.CreatedDate).slice(0, 10);
+    allTotal[date] = (allTotal[date] || 0) + 1;
+    if (!row.Entry_Attribution__c) continue; // unattributed — All-started total only
+    const rawEntry = String(row.Entry_Attribution__c);
     const bucket = sourceBucket(String(row.Source_Category__c || ''));
     const cat = entryCategory(rawEntry, bucket);
     const p = entryPath(rawEntry);
@@ -159,8 +163,8 @@ async function fetchTrials(excludedAccounts) {
       });
     }
   }
-  console.log(`Trials: ${res.rowCount} attribution leads fetched, ${excluded} excluded (Spreadsheets/OEM), ${attributed} matched a URL pattern`);
-  return { trials, attribution, leads };
+  console.log(`Trials: ${res.rowCount} CAI signup leads fetched, ${excluded} excluded (Spreadsheets/OEM), ${attributed} matched a URL pattern`);
+  return { trials, attribution, allTotal, leads };
 }
 
 // Trial -> Opportunity conversion. Opportunities are NOT auto-created by a
@@ -227,10 +231,11 @@ async function fetchTrialOpps(leads) {
 async function updateSnapshot() {
   const snapshot = JSON.parse(fs.readFileSync(OUT_FILE, 'utf8'));
   const excludedAccounts = await fetchExcludedAccounts();
-  const { trials, attribution, leads } = await fetchTrials(excludedAccounts);
+  const { trials, attribution, allTotal, leads } = await fetchTrials(excludedAccounts);
   const { trialOpps, trialOppsByPattern, trialMaxExpiry } = await fetchTrialOpps(leads);
   snapshot.trials = trials;
   snapshot.trialAttribution = attribution; // Trial Attribution tab: { date: { category: n } }
+  snapshot.trialsAllTotal = allTotal; // { date: n } — all CAI signups incl. unattributed (Spreadsheets/OEM excluded)
   snapshot.trialOpps = trialOpps; // { leadDate: { category: opps } }
   snapshot.trialOppsByPattern = trialOppsByPattern; // { leadDate: { patternId: opps } }
   snapshot.trialMaxExpiry = trialMaxExpiry; // { leadDate: latest trial expiry }
